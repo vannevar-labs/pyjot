@@ -1,4 +1,7 @@
-from time import time_ns, monotonic_ns
+from contextlib import contextmanager
+from time import monotonic_ns, time_ns
+
+from . import log
 
 
 class Span:
@@ -36,9 +39,15 @@ class Target:
         cls._next_id += 1
         return id
 
+    def __init__(self, level=log.WARNING):
+        self.level = level
+
+    def accepts_log_level(self, level):
+        return level <= self.level
+
     def start(self, parent=None, name=None):
         trace_id = parent.trace_id if parent is not None else self._gen_id()
-        parent_id = parent.id if parent is not None else self._gen_id()
+        parent_id = parent.id if parent is not None else None
         id = self._gen_id()
         name = name if name is not None else f"span-{id}"
         return Span(trace_id, parent_id, id, name)

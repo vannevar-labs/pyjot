@@ -22,8 +22,9 @@ class PrintTarget(Target):
     tags["duration"] = span.duration
     self._write(span, tags, "finish", span.name)
 
-  def log(self, span,  level, message, tags):
-    self._write(span, tags, level, message)
+  def log(self, span, level, message, tags):
+    with self.moderate(level):
+      self._write(span, tags, level, message)
 
   def error(self, span, message, exception, tags):
     self._write(span, tags, "Error:", message)

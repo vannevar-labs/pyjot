@@ -1,3 +1,4 @@
+from . import log
 from .base import Target
 
 
@@ -32,16 +33,19 @@ class Jot:
     """Logging methods"""
 
     def debug(self, message, *tagdicts):
-        tags = self._merge(tagdicts)
-        self.target.log(self.span, "debug", message, tags)
+        if self.target.accepts_log_level(log.DEBUG):
+            tags = self._merge(tagdicts)
+            self.target.log(self.span, log.DEBUG, message, tags)
 
     def info(self, message, *tagdicts):
-        tags = self._merge(tagdicts)
-        self.target.log(self.span, "info", message, tags)
+        if self.target.accepts_log_level(log.INFO):
+            tags = self._merge(tagdicts)
+            self.target.log(self.span, log.INFO, message, tags)
 
     def warning(self, message, *tagdicts):
-        tags = self._merge(tagdicts)
-        self.target.log(self.span, "warning", message, tags)
+        if self.target.accepts_log_level(log.WARNING):
+            tags = self._merge(tagdicts)
+            self.target.log(self.span, log.WARNING, message, tags)
 
     """Error methods"""
 

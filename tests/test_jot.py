@@ -1,13 +1,16 @@
-from jot import Jot
+import pytest
+from jot import Jot, log
 from jot.base import Span, Target
 from jot.print import PrintTarget
-import pytest
 
 EXPECTED_TAGS = {"plonk": 42, "nork": 96}
 
+
 @pytest.fixture
 def jot():
-    return Jot(None, None, {"plonk": 42})
+    target = Target(log.ALL)
+    return Jot(target, None, {"plonk": 42})
+
 
 def test_default_constructor():
     jot = Jot()
@@ -58,17 +61,41 @@ def test_finish(jot, mocker):
 def test_debug(jot, mocker):
     spy = mocker.spy(jot.target, "log")
     jot.debug("test log message", {"nork": 96})
-    spy.assert_called_once_with(jot.span, "debug", "test log message", EXPECTED_TAGS)
+    spy.assert_called_once_with(jot.span, log.DEBUG, "test log message", EXPECTED_TAGS)
+
 
 def test_info(jot, mocker):
     spy = mocker.spy(jot.target, "log")
     jot.info("test log message", {"nork": 96})
-    spy.assert_called_once_with(jot.span, "info", "test log message", EXPECTED_TAGS)
+    spy.assert_called_once_with(jot.span, log.INFO, "test log message", EXPECTED_TAGS)
+
 
 def test_warning(jot, mocker):
     spy = mocker.spy(jot.target, "log")
     jot.warning("test log message", {"nork": 96})
-    spy.assert_called_once_with(jot.span, "warning", "test log message", EXPECTED_TAGS)
+    spy.assert_called_once_with(jot.span, log.WARNING, "test log message", EXPECTED_TAGS)
+
+def test_ignored_debug(mocker):
+    target = Target(log.NOTHING)
+    jot = Jot(target)
+    spy = mocker.spy(jot.target, "log")
+    jot.debug("test log message", {"nork": 96})
+    spy.assert_not_called()
+
+def test_ignored_info(mocker):
+    target = Target(log.NOTHING)
+    jot = Jot(target)
+    spy = mocker.spy(jot.target, "log")
+    jot.info("test log message", {"nork": 96})
+    spy.assert_not_called()
+
+def test_ignored_warning(mocker):
+    target = Target(log.NOTHING)
+    jot = Jot(target)
+    spy = mocker.spy(jot.target, "log")
+    jot.warning("test log message", {"nork": 96})
+    spy.assert_not_called()
+
 
 def test_error(jot, mocker):
     spy = mocker.spy(jot.target, "error")
@@ -78,10 +105,12 @@ def test_error(jot, mocker):
         jot.error("caught test error", e, {"nork": 96})
         spy.assert_called_once_with(jot.span, "caught test error", e, EXPECTED_TAGS)
 
+
 def test_magnitude(jot, mocker):
     spy = mocker.spy(jot.target, "magnitude")
     jot.magnitude("zishy", 105, {"nork": 96})
     spy.assert_called_once_with(jot.span, "zishy", 105, EXPECTED_TAGS)
+
 
 def test_count(jot, mocker):
     spy = mocker.spy(jot.target, "count")
