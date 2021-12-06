@@ -75,6 +75,7 @@ def test_warning(jot, mocker):
     jot.warning("test log message", {"nork": 96})
     spy.assert_called_once_with(jot.span, log.WARNING, "test log message", EXPECTED_TAGS)
 
+
 def test_ignored_debug(mocker):
     target = Target(log.NOTHING)
     jot = Jot(target)
@@ -82,12 +83,14 @@ def test_ignored_debug(mocker):
     jot.debug("test log message", {"nork": 96})
     spy.assert_not_called()
 
+
 def test_ignored_info(mocker):
     target = Target(log.NOTHING)
     jot = Jot(target)
     spy = mocker.spy(jot.target, "log")
     jot.info("test log message", {"nork": 96})
     spy.assert_not_called()
+
 
 def test_ignored_warning(mocker):
     target = Target(log.NOTHING)
@@ -116,3 +119,21 @@ def test_count(jot, mocker):
     spy = mocker.spy(jot.target, "count")
     jot.count("zishy", 105, {"nork": 96})
     spy.assert_called_once_with(jot.span, "zishy", 105, EXPECTED_TAGS)
+
+
+def test_with_span(jot, mocker):
+    cspan = None
+    sspy = None
+    tspy = None
+    with jot.child("subtask", {"nork": 96}) as child:
+        assert len(jot.tags) == 1
+        assert child.target is jot.target
+        assert child.span is not jot.span
+        assert child.tags["plonk"] == 42
+        assert child.tags["nork"] == 96
+        cspan = child.span
+        sspy = mocker.spy(cspan, "finish")
+        tspy = mocker.spy(jot.target, "finish")
+
+    sspy.assert_called_once_with()
+    tspy.assert_called_once_with(cspan, {"plonk": 42, "nork": 96})

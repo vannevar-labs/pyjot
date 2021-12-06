@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from . import log
 from .base import Target
 
@@ -19,6 +21,12 @@ class Jot:
         return tags
 
     """Tracing Methods"""
+
+    @contextmanager
+    def child(self, name, *tagdicts):
+        child = self.start(name, *tagdicts)
+        yield child
+        child.finish()
 
     def start(self, name, *tagdicts):
         tags = self._merge(tagdicts)
