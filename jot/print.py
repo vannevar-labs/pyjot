@@ -30,6 +30,9 @@ class PrintTarget(Target):
         tags["duration"] = span.duration
         self._write(span, tags, "finish", span.name)
 
+    def event(self, span, name, tags):
+        self.write(span, tags, name)
+
     def log(self, span, level, message, tags):
         if self.accepts_log_level(level):
             self._write(span, tags, log.name(level).upper(), message)

@@ -38,6 +38,10 @@ class Jot:
         tags = self._merge(tagdicts)
         self.target.finish(self.span, tags)
 
+    def event(self, name, *tagdicts):
+        tags = self._merge(tagdicts)
+        self.target.event(self.span, name, tags)
+
     """Logging methods"""
 
     def debug(self, message, *tagdicts):

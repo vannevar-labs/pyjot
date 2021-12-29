@@ -11,7 +11,7 @@ class Span:
         self.trace_id = trace_id
         self.parent_id = parent_id
         self.id = id
-        self.name = name if name is not None else f"span-{self.id}"
+        self.name = name
         self.start()
 
     def start(self):
@@ -49,10 +49,12 @@ class Target:
         trace_id = parent.trace_id if parent is not None else self._gen_id()
         parent_id = parent.id if parent is not None else None
         id = self._gen_id()
-        name = name if name is not None else f"span-{id}"
         return Span(trace_id, parent_id, id, name)
 
     def finish(self, span, tags):
+        pass
+
+    def event(self, span, name, tags):
         pass
 
     def log(self, span, level, message, tags):
