@@ -32,6 +32,7 @@ class Target:
     """A target that ignores all telemetry"""
 
     _next_id = 1
+    _span_class = Span
 
     @classmethod
     def _gen_id(cls):
@@ -39,35 +40,45 @@ class Target:
         cls._next_id += 1
         return id
 
+    @classmethod
+    def _gen_trace_id(cls):
+        return cls._gen_id()
+
+    @classmethod
+    def _gen_span_id(cls):
+        return cls._gen_id()
+
     def __init__(self, level=log.WARNING):
         self.level = level
 
-    def _start(self, trace_id, parent_id, id, name):
-        return Span(trace_id, parent_id, id, name)
-
     def accepts_log_level(self, level):
         return level <= self.level
+
+    def span(self, trace_id=None, parent_id=None, id=None, name=None):
+        trace_id = self._gen_id() if trace_id is None else trace_id
+        id = self._gen_id() if id is None else id
+        return self._span_class(trace_id, parent_id, id, name)
 
     def start(self, parent=None, name=None):
         trace_id = parent.trace_id if parent is not None else self._gen_id()
         parent_id = parent.id if parent is not None else None
         id = self._gen_id()
-        return self._start(trace_id, parent_id, id, name)
+        return self.span(trace_id, parent_id, id, name)
 
-    def finish(self, span, tags):
+    def finish(self, tags, span):
         pass
 
-    def event(self, span, name, tags):
+    def event(self, name, tags, span=None):
         pass
 
-    def log(self, span, level, message, tags):
+    def log(self, level, message, tags, span=None):
         pass
 
-    def error(self, span, message, exception, tags):
+    def error(self, message, exception, tags, span=None):
         pass
 
-    def magnitude(self, span, name, value, tags):
+    def magnitude(self, name, value, tags, span=None):
         pass
 
-    def count(self, span, name, value, tags):
+    def count(self, name, value, tags, span=None):
         pass

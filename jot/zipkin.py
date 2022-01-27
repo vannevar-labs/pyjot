@@ -1,6 +1,7 @@
 import os
 import traceback
 from time import time_ns
+import json
 
 import requests
 
@@ -22,6 +23,8 @@ class ZipkinSpan(Span):
 class ZipkinTarget(Target):
     """A target that sends traces to a zipkin server"""
 
+    _span_class = ZipkinSpan
+
     @classmethod
     def _gen_id(cls):
         return os.urandom(8).hex()
@@ -30,43 +33,47 @@ class ZipkinTarget(Target):
         self.url = url
         self.session = requests.Session()
 
-    def _start(self, trace_id, parent_id, id, name):
-        return ZipkinSpan(trace_id, parent_id, id, name)
-
     def _send(self, payload):
+
+        # FIXME: remove debugging code
+        print(json.dumps(payload))
+
         try:
             response = self.session.post(self.url, json=payload)
-            response.raise_for_status()
+            if response.status_code > 299:
+                print(f"Zipkin response status code: {response.status_code}")
+                print(response.text)
         except Exception:
             # TODO: implement a better error handling mechanism
             print(traceback.format_exc())
 
-
-    def finish(self, span, tags):
-        payload = {
+    def finish(self, tags, span):
+        obj = {
             "traceId": span.trace_id,
+            "parentId": span.parent_id,
             "id": span.id,
             "timestamp": span.start_time // 1000,
             "duration": span.duration,
         }
 
-        _set_attr(payload, "parentId", span.parent_id)
-        _set_attr(payload, "name", span.name)
+        _set_attr(obj, "name", span.name)
 
-        _set_tag(payload, tags, "kind")
-        _set_tag(payload, tags, "shared")
-        _set_tag(payload, tags, "localEndpoint")
-        _set_tag(payload, tags, "remoteEndpoint")
-        payload["tags"] = tags
+        _set_tag(obj, tags, "kind")
+        _set_tag(obj, tags, "shared")
+        _set_tag(obj, tags, "localEndpoint")
+        _set_tag(obj, tags, "remoteEndpoint")
+        obj["tags"] = tags
 
         annotations = [{"timestamp": a.timestamp, "value": a.value} for a in span.attributes]
         if len(annotations) > 0:
-            payload["annotations"] = annotations
+            obj["annotations"] = annotations
 
+        payload = [obj]
         self._send(payload)
 
-    def event(self, span, name, tags):
-        span.attributes.append(ZipkinAttribute(name))
+    def event(self, name, tags, span=None):
+        if span is not None:
+            span.attributes.append(ZipkinAttribute(name))
 
 
 def _set_attr(payload, name, value):

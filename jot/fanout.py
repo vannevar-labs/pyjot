@@ -29,15 +29,15 @@ class FanOutTarget:
     def _exec(self, method_name, span, *args):
         "Call the named method on each target with the correct span and forward other arguments"
 
-        # Targets are expecting to be able to modify tags dictionaries without causing problems, so 
+
+        # Targets are expecting to be able to modify tags dictionaries without causing problems, so
         # we have to make a copy of the dictionary before making the call. Tags is the last argument
         # to all methods, so this is straightforward.
-        last = len(args) - 1
         middle = args[:-1]
         for target, sp in zip(self.targets, span.spans):
-            tags = copy(args[last])
+            tags = copy(args[-1])
             func = getattr(target, method_name)
-            func(sp, *middle, tags)
+            func(*middle, tags, sp)
 
     def accepts_log_level(self, level):
         return any(t.accepts_log_level(level) for t in self.targets)
@@ -47,20 +47,20 @@ class FanOutTarget:
         children = [t.start(p, name) for t, p in zip(self.targets, spans)]
         return FanOutSpan(children)
 
-    def finish(self, span, tags):
+    def finish(self, tags, span):
         self._exec("finish", span, tags)
 
-    def event(self, span, name, tags):
+    def event(self, name, tags, span):
         self._exec("event", span, name, tags)
 
-    def log(self, span, level, message, tags):
+    def log(self, level, message, tags, span):
         self._exec("log", span, level, message, tags)
 
-    def error(self, span, message, exception, tags):
+    def error(self, message, exception, tags, span):
         self._exec("error", span, message, exception, tags)
 
-    def magnitude(self, span, name, value, tags):
+    def magnitude(self, name, value, tags, span):
         self._exec("magnitude", span, name, value, tags)
 
-    def count(self, span, name, value, tags):
+    def count(self, name, value, tags, span):
         self._exec("count", span, name, value, tags)

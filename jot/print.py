@@ -16,7 +16,7 @@ class PrintTarget(Target):
 
     @staticmethod
     def _write(span, tags=None, *chunks):
-        stderr.write(f"[{_now()}]")
+        stderr.write(f"[{span.id}/{_now()}] ")
         if type(tags) == dict:
             for k, v in tags.items():
                 stderr.write(f" {k}={v}")
@@ -26,23 +26,28 @@ class PrintTarget(Target):
             stderr.write(f" {c}")
         stderr.write("\n")
 
-    def finish(self, span, tags):
+    def start(self, parent=None, name=None):
+        span = super().start(parent, name)
+        self._write(span, {}, "start", name)
+        return span
+
+    def finish(self, tags, span):
         tags["duration"] = span.duration
         self._write(span, tags, "finish", span.name)
 
-    def event(self, span, name, tags):
+    def event(self, name, tags, span=None):
         self.write(span, tags, name)
 
-    def log(self, span, level, message, tags):
+    def log(self, level, message, tags, span=None):
         if self.accepts_log_level(level):
             self._write(span, tags, log.name(level).upper(), message)
 
-    def error(self, span, message, exception, tags):
+    def error(self, message, exception, tags, span=None):
         self._write(span, tags, "Error:", message)
-        print_exception(exception)
+        print(exception)
 
-    def magnitude(self, span, name, value, tags):
+    def magnitude(self, name, value, tags, span=None):
         self._write(span, tags, f"{name}={value}")
 
-    def count(self, span, name, value, tags):
+    def count(self, name, value, tags, span=None):
         self._write(span, tags, f"{name}={value}")

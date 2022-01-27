@@ -1,6 +1,5 @@
 from jot.zipkin import ZipkinTarget
-import sys
-import os
+import json
 
 HEX_ALPHABET = "0123456789abcdef"
 
@@ -44,7 +43,7 @@ def test_finish(requests_mock):
     target = ZipkinTarget("http://example.com/post")
     root = target.start()
     span = target.start(root, "test-span")
-    target.event(span, "an event", {})
+    target.event("an event", {}, span)
     tags = {
         "pluff": 667,
         "kind": "CLIENT",
@@ -56,5 +55,63 @@ def test_finish(requests_mock):
     }
 
     requests_mock.post(target.url, status_code=202)
-    target.finish(span, tags)
-    assert requests_mock.called
+    target.finish(tags, span)
+    assert requests_mock.called_once
+
+    payload = json.loads(requests_mock.last_request.text)
+
+    assert type(payload) is list
+    assert len(payload) is 1
+    s = payload[0]
+
+    assert_is_id(s, "id")
+    assert_is_id(s, "traceId")
+    assert_is_id(s, "parentId")
+    assert_is_int(s, "timestamp")
+    assert_is_int(s, "duration")
+
+    assert s["name"] == "test-span"
+    assert s["kind"] == "CLIENT"
+    assert s["shared"] is True
+    assert s["tags"] == {"pluff": 667}
+    assert s["localEndpoint"] == {"ipv4": "192.168.1.51"}
+    assert s["remoteEndpoint"] == {"serviceName": "postgres", "ipv4": "192.168.1.1", "port": 5432}
+
+    assert sorted(s.keys()) == [
+        "annotations",
+        "duration",
+        "id",
+        "kind",
+        "localEndpoint",
+        "name",
+        "parentId",
+        "remoteEndpoint",
+        "shared",
+        "tags",
+        "timestamp",
+        "traceId",
+    ]
+
+def test_root_span(requests_mock):
+    target = ZipkinTarget("http://example.com/post")
+    root = target.start()
+
+    requests_mock.post(target.url, status_code=202)
+    target.finish({}, root)
+    assert requests_mock.called_once
+
+    span = json.loads(requests_mock.last_request.text)[0]
+    assert "parentId" in span
+    assert span["parentId"] is None
+    
+    
+
+def assert_is_id(obj, name):
+    assert name in obj
+    assert type(obj[name]) is str
+    assert len(obj[name]) == 16
+
+
+def assert_is_int(obj, name):
+    assert name in obj
+    assert type(obj[name]) is int
