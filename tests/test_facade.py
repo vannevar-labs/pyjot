@@ -34,22 +34,34 @@ def test_active():
 
 def test_init():
     target = Target()
-    jot.init(target, loozy=34)
+    jot.init(target)
     assert jot.active.target is target
-    assert jot.active.tags == {"loozy": 34}
+    assert jot.active.tags == {}
     assert jot.active.span is None
+
+
+def test_init_tags(dtags, kwtags, assert_tags_are_correct):
+    target = Target()
+    jot.init(target, dtags, **kwtags)
+    assert_tags_are_correct(jot.active)
 
 
 def test_start():
     jot.init(Target(), loozy=34)
     parent = jot.active
-    jot.start("child", nork=91)
+    jot.start("child")
 
     assert jot.active is not parent
-    assert jot.active.tags["nork"] == 91
     assert type(jot.active.span.trace_id) is int
     assert type(jot.active.span.id) is int
     assert jot.active.span.name == "child"
+
+
+def test_start_tags(dtags, kwtags, assert_child_tags_are_correct):
+    jot.init(Target(), loozy=34)
+    parent = jot.active
+    jot.start("child", dtags, **kwtags)
+    assert_child_tags_are_correct(parent, jot.active)
 
 
 def test_finish():
@@ -58,6 +70,12 @@ def test_finish():
     jot.finish()
 
     assert jot.active is parent
+
+
+def test_finish_forwards(assert_forwards):
+    parent = jot.active
+    jot.start("child")
+    assert_forwards("finish")
 
 
 def test_with():
@@ -109,31 +127,31 @@ def test_with_error(mocker):
 
 
 def test_event(assert_forwards):
-    assert_forwards("event", "name", loozy=6)
+    assert_forwards("event", "name", {"plonk": 96}, bink=42)
 
 
 def test_debug(assert_forwards):
-    assert_forwards("debug", "debug message", loozy=6)
+    assert_forwards("debug", "debug message", {"plonk": 96}, bink=42)
 
 
 def test_info(assert_forwards):
-    assert_forwards("info", "info message", loozy=6)
+    assert_forwards("info", "info message", {"plonk": 96}, bink=42)
 
 
 def test_warning(assert_forwards):
-    assert_forwards("warning", "warning message", loozy=6)
+    assert_forwards("warning", "warning message", {"plonk": 96}, bink=42)
 
 
 def test_error(assert_forwards):
     try:
         1 / 0
     except ZeroDivisionError as exc:
-        assert_forwards("error", "error message", exc, loozy=6)
+        assert_forwards("error", "error message", exc, {"plonk": 96}, bink=42)
 
 
 def test_magnitude(assert_forwards):
-    assert_forwards("magnitude", "temperature", 99.0, loozy=6)
+    assert_forwards("magnitude", "temperature", 99.0, {"plonk": 96}, bink=42)
 
 
 def test_count(assert_forwards):
-    assert_forwards("count", "requests", 99, loozy=6)
+    assert_forwards("count", "requests", 99, {"plonk": 96}, bink=42)

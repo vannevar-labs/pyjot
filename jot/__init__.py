@@ -19,9 +19,10 @@ def _pop():
     global active
     active = _stack.pop()
 
-def init(target, **tags):
+
+def init(target, dtags={}, **kwtags):
     global active, _stack
-    active = Telemeter(target, None, **tags)
+    active = Telemeter(target, None, dtags, **kwtags)
     _stack = []
 
 
@@ -35,32 +36,32 @@ def finish(*args, **kwargs):
     _pop()
 
 
-def event(name, **tags):
-    return active.event(name, **tags)
+def event(*args, **kwargs):
+    return active.event(*args, **kwargs)
 
 
-def debug(message, **tags):
-    return active.debug(message, **tags)
+def debug(*args, **kwargs):
+    return active.debug(*args, **kwargs)
 
 
-def info(message, **tags):
-    return active.info(message, **tags)
+def info(*args, **kwargs):
+    return active.info(*args, **kwargs)
 
 
-def warning(message, **tags):
-    return active.warning(message, **tags)
+def warning(*args, **kwargs):
+    return active.warning(*args, **kwargs)
 
 
-def error(message, exc, **tags):
-    return active.error(message, exc, **tags)
+def error(*args, **kwargs):
+    return active.error(*args, **kwargs)
 
 
-def magnitude(name, value, **tags):
-    return active.magnitude(name, value, **tags)
+def magnitude(*args, **kwargs):
+    return active.magnitude(*args, **kwargs)
 
 
-def count(name, value, **tags):
-    return active.count(name, value, **tags)
+def count(*args, **kwargs):
+    return active.count(*args, **kwargs)
 
 
 @_contextmanager
@@ -128,6 +129,7 @@ def generator(name, **static_tags):
             # the generator function can accept any keyword argument, so we only extract
             # tags based on the whitelist explicitly supplied via the @tag decorator
             wrapper._uses_whitelist = True
+
             def tag_names_to_extract(kwargs):
                 return [n for n in kwargs.keys() if n in wrapper._whitelist]
 
@@ -135,12 +137,14 @@ def generator(name, **static_tags):
             # the generator function accepts only specific keyword arguments, so we blacklist them
             # any keyword argument that is not on the blacklist will be treated as a tag
             blacklist = [p.name for p in sig.parameters.values() if _could_be_keyword(p.kind)]
+
             def tag_names_to_extract(kwargs):
                 return [n for n in kwargs.keys() if n not in blacklist]
 
         return wrapper
 
     return decorator
+
 
 def tag(name):
     def decorator(func):
@@ -152,6 +156,7 @@ def tag(name):
 
         func._whitelist.append(name)
         return func
+
     return decorator
 
 
