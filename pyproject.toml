@@ -6,11 +6,7 @@ authors = [
     {name = "Colin Putney", email = "colin.putney@descarteslabs.com"},
 ]
 dependencies = [
-    "pytest~=6.2",
-    "pytest-mock~=3.6",
-    "mock~=4.0",
     "requests~=2.26",
-    "requests-mock>=1.9.3",
 ]
 requires-python = ">=3.6"
 license = {text = "MIT"}
@@ -18,8 +14,17 @@ license = {text = "MIT"}
 [project.urls]
 homepage = ""
 
+[project.optional-dependencies]
 [tool]
 [tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "pytest~=6.2",
+    "pytest-mock~=3.6",
+    "mock~=4.0",
+    "requests-mock~=1.9.3",
+    "tox-pdm~=0.3.1",
+]
 
 [build-system]
 requires = ["pdm-pep517"]

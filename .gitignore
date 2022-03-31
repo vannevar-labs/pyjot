@@ -4,10 +4,9 @@
 # IDEs
 .vscode/
 
-# PDM
-.pdm.toml
-
 # Python
+.pdm.toml
 .pytest_cache/
 __pycache__/
 __pypackages__/
+.tox
