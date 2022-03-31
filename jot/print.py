@@ -16,8 +16,8 @@ class PrintTarget(Target):
 
     @staticmethod
     def _write(span, tags=None, *chunks):
-        stderr.write(f"[{span.id}/{_now()}] ")
-        if type(tags) == dict:
+        stderr.write(f"[{span.id_hex}/{_now()}] ")
+        if isinstance(tags, dict):
             for k, v in tags.items():
                 stderr.write(f" {k}={v}")
         else:

@@ -39,9 +39,9 @@ def test_accepts_log_level_gt():
 def test_start_root():
     target = Target()
     span = target.start()
-    assert type(span.trace_id) is int
+    assert isinstance(span.trace_id, bytes)
     assert span.parent_id is None
-    assert type(span.id) is int
+    assert isinstance(span.id, bytes)
     assert span.id != span.trace_id
     assert span.id != span.parent_id
 
@@ -52,6 +52,6 @@ def test_start_child():
     child = target.start(parent, "child")
     assert child.trace_id == parent.trace_id
     assert child.parent_id == parent.id
-    assert type(child.id) is int
+    assert isinstance(child.id, bytes)
     assert child.id != child.trace_id
     assert child.id != child.parent_id

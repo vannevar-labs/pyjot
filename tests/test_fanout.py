@@ -1,6 +1,6 @@
 import pytest
 from jot import log
-from jot.base import Target
+from jot.base import Span, Target
 from jot.fanout import FanOutTarget
 
 TAGS_INDEX = -2
@@ -32,7 +32,7 @@ def assert_forwards(fan, mocker):
 
         # assert the call was correct for zero
         zero.assert_called_once()
-        assert zero.call_args.args[SPAN_INDEX] is span.spans[0]
+        assert zero.call_args.args[SPAN_INDEX] is span
         for i, a in enumerate(args):
             assert zero.call_args.args[i] == a
         assert zero.call_args.args[TAGS_INDEX] is not tags
@@ -40,7 +40,7 @@ def assert_forwards(fan, mocker):
 
         # assert the call was correct for one
         one.assert_called_once()
-        assert one.call_args.args[SPAN_INDEX] is span.spans[1]
+        assert one.call_args.args[SPAN_INDEX] is span
         for i, a in enumerate(args):
             assert one.call_args.args[i] == a
         assert one.call_args.args[TAGS_INDEX] is not tags
@@ -67,30 +67,6 @@ def test_accepts_log_level(fan):
     assert not fan.accepts_log_level(log.ALL)
 
 
-def test_start_root(fan):
-    root = fan.start()
-    assert len(root.spans) == 2
-    for s in root.spans:
-        assert s.parent_id is None
-        assert s.name is None
-        assert s.start_time is not None
-        assert s.duration is not None
-
-
-def test_start_child(fan):
-    parent = fan.start()
-    child = fan.start(parent)
-    assert len(child.spans) == 2
-    assert child.spans[0].parent_id == parent.spans[0].id
-    assert child.spans[1].parent_id == parent.spans[1].id
-
-
-def test_start_name(fan):
-    root = fan.start(None, "root")
-    assert root.spans[0].name == "root"
-    assert root.spans[1].name == "root"
-
-
 def test_finish(assert_forwards):
     assert_forwards("finish")
 
@@ -100,7 +76,7 @@ def test_event(assert_forwards):
 
 
 def test_log(assert_forwards):
-    assert_forwards("log", log.WARNING, "a log message")
+    assert_forwards("log", log.ERROR, "a log message")
 
 
 def test_error(assert_forwards):
@@ -116,3 +92,28 @@ def test_magnitude(assert_forwards):
 
 def test_count(assert_forwards):
     assert_forwards("count", "metric name", 6)
+
+def test_log_warning(fan, mocker):
+    "Assert the fanout target honors log level when forwarding"
+
+    # create the mocks
+    zero = mocker.spy(fan.targets[0], "log")
+    one = mocker.spy(fan.targets[1], "log")
+
+    # create the special args
+    span = fan.start()
+    tags = {"flooge": 91}
+
+    # call the method
+    fan.log(log.WARNING, "a log message", tags, span)
+
+    # assert the call was correct for zero
+    zero.assert_not_called()
+
+    # assert the call was correct for one
+    one.assert_called_once()
+    assert one.call_args.args[SPAN_INDEX] is span
+    assert one.call_args.args[0] == log.WARNING
+    assert one.call_args.args[1] == "a log message"
+    assert one.call_args.args[TAGS_INDEX] is not tags
+    assert one.call_args.args[TAGS_INDEX]["flooge"] == 91

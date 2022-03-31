@@ -52,8 +52,8 @@ def test_start():
     jot.start("child")
 
     assert jot.active is not parent
-    assert type(jot.active.span.trace_id) is int
-    assert type(jot.active.span.id) is int
+    assert isinstance(jot.active.span.trace_id, bytes)
+    assert isinstance(jot.active.span.id, bytes)
     assert jot.active.span.name == "child"
 
 
@@ -95,7 +95,7 @@ def test_with_trace_id():
         assert child is not parent
         assert child.span.trace_id == 51
         assert child.span.parent_id is None
-        assert type(child.span.id) is int
+        assert isinstance(child.span.id, bytes)
         assert child.span.name == "child"
 
 
@@ -104,7 +104,7 @@ def test_with_parent_id():
         assert child is jot.active
         assert child.span.trace_id == 51
         assert child.span.parent_id == 66
-        assert type(child.span.id) is int
+        assert isinstance(child.span.id, bytes)
         assert child.span.name == "child"
 
 

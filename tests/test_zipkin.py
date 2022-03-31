@@ -1,15 +1,6 @@
 from jot.zipkin import ZipkinTarget
 import json
 
-HEX_ALPHABET = "0123456789abcdef"
-
-
-def check_id(id):
-    assert type(id) == str
-    assert len(id) == 16
-    for c in id:
-        assert c in HEX_ALPHABET
-
 
 def test_constructor():
     ZipkinTarget(None)
@@ -18,8 +9,7 @@ def test_constructor():
 def test_start_root():
     target = ZipkinTarget(None)
     span = target.start()
-    check_id(span.trace_id)
-    check_id(span.id)
+    check_ids(span)
     assert span.parent_id is None
     assert span.name is None
 
@@ -28,8 +18,7 @@ def test_start_child():
     target = ZipkinTarget(None)
     root = target.start()
     span = target.start(root)
-    check_id(span.trace_id)
-    check_id(span.id)
+    check_ids(span)
     assert span.parent_id == root.id
 
 
@@ -60,12 +49,12 @@ def test_finish(requests_mock):
 
     payload = json.loads(requests_mock.last_request.text)
 
-    assert type(payload) is list
+    assert isinstance(payload, list)
     assert len(payload) is 1
     s = payload[0]
 
     assert_is_id(s, "id")
-    assert_is_id(s, "traceId")
+    assert_is_id(s, "traceId", 32)
     assert_is_id(s, "parentId")
     assert_is_int(s, "timestamp")
     assert_is_int(s, "duration")
@@ -92,6 +81,7 @@ def test_finish(requests_mock):
         "traceId",
     ]
 
+
 def test_root_span(requests_mock):
     target = ZipkinTarget("http://example.com/post")
     root = target.start()
@@ -103,15 +93,24 @@ def test_root_span(requests_mock):
     span = json.loads(requests_mock.last_request.text)[0]
     assert "parentId" in span
     assert span["parentId"] is None
-    
-    
 
-def assert_is_id(obj, name):
+
+def assert_is_id(obj, name, expected_len=16):
     assert name in obj
-    assert type(obj[name]) is str
-    assert len(obj[name]) == 16
+    assert isinstance(obj[name], str)
+    assert len(obj[name]) == expected_len
 
 
 def assert_is_int(obj, name):
     assert name in obj
-    assert type(obj[name]) is int
+    assert isinstance(obj[name], int)
+
+
+def check_ids(span):
+    assert isinstance(span.trace_id, bytes)
+    assert len(span.trace_id) == 16
+    assert isinstance(span.id, bytes)
+    assert len(span.id) == 8
+    if span.parent_id is not None:
+        assert isinstance(span.parent_id, bytes)
+        assert len(span.parent_id) == 8

@@ -1,19 +1,74 @@
+import codecs
+import random
 from contextlib import contextmanager
 from time import monotonic_ns, time_ns
 
 from . import log
 
+_to_hex = codecs.getencoder("hex")
+_to_str = codecs.getdecoder("ascii")
+
+
+def _hex_encode(id):
+    if id is None:
+        return None
+    hexbytes = _to_hex(id)[0]
+    return _to_str(hexbytes)[0]
+
+
+class Event:
+    def __init__(self, name, timestamp=None, tags={}):
+        self.name = name
+        self.timestamp = timestamp if timestamp else time_ns()
+        self.tags = tags
+
 
 class Span:
-    """A span that tracks duration"""
+    @classmethod
+    def _gen_id(cls, byte_count):
+        return bytes(random.getrandbits(8) for _ in range(byte_count))
 
-    def __init__(self, trace_id, parent_id, id, name=None):
-        self.trace_id = trace_id
+    @classmethod
+    def gen_trace_id(cls):
+        return cls._gen_id(16)
+
+    @classmethod
+    def gen_span_id(cls):
+        return cls._gen_id(8)
+
+    @classmethod
+    def from_parent(cls, parent, name=None):
+        trace_id = parent.trace_id if parent else None
+        parent_id = parent.id if parent else None
+        return cls(trace_id, parent_id, name=name)
+
+    def __init__(self, trace_id=None, parent_id=None, id=None, name=None):
+        self.trace_id = trace_id if trace_id else self.gen_trace_id()
         self.parent_id = parent_id
-        self.id = id
+        self.id = id if id else self.gen_span_id()
         self.name = name
+        self.events = []
+        self.baggage = {}
         self.start()
 
+    #
+    # ids
+    #
+    @property
+    def trace_id_hex(self):
+        return _hex_encode(self.trace_id)
+
+    @property
+    def parent_id_hex(self):
+        return _hex_encode(self.parent_id)
+
+    @property
+    def id_hex(self):
+        return _hex_encode(self.id)
+
+    #
+    # timing
+    #
     def start(self):
         self.start_time = time_ns()
         self._clock_start = monotonic_ns()
@@ -27,26 +82,15 @@ class Span:
         _clock_finish = self._clock_finish if self._clock_finish is not None else monotonic_ns()
         return _clock_finish - self._clock_start
 
+    #
+    # events
+    #
+    def add_event(self, event):
+        self.events.append(event)
+
 
 class Target:
     """A target that ignores all telemetry"""
-
-    _next_id = 1
-    _span_class = Span
-
-    @classmethod
-    def _gen_id(cls):
-        id = cls._next_id
-        cls._next_id += 1
-        return id
-
-    @classmethod
-    def _gen_trace_id(cls):
-        return cls._gen_id()
-
-    @classmethod
-    def _gen_span_id(cls):
-        return cls._gen_id()
 
     def __init__(self, level=log.WARNING):
         self.level = level
@@ -55,21 +99,18 @@ class Target:
         return level <= self.level
 
     def span(self, trace_id=None, parent_id=None, id=None, name=None):
-        trace_id = self._gen_id() if trace_id is None else trace_id
-        id = self._gen_id() if id is None else id
-        return self._span_class(trace_id, parent_id, id, name)
+        return Span(trace_id, parent_id, id, name)
 
     def start(self, parent=None, name=None):
-        trace_id = parent.trace_id if parent is not None else self._gen_id()
-        parent_id = parent.id if parent is not None else None
-        id = self._gen_id()
-        return self.span(trace_id, parent_id, id, name)
+        return Span.from_parent(parent, name)
 
     def finish(self, tags, span):
         pass
 
     def event(self, name, tags, span=None):
-        pass
+        if span:
+            event = Event(name, tags=tags)
+            span.add_event(event)
 
     def log(self, level, message, tags, span=None):
         pass

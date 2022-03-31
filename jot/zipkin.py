@@ -1,33 +1,13 @@
-import os
 import traceback
 from time import time_ns
 import json
 
 import requests
-
-from .base import Span, Target
-
-
-class ZipkinAttribute:
-    def __init__(self, value, timestamp=None):
-        self.value = value
-        self.timestamp = timestamp if timestamp is not None else time_ns() // 1000
-
-
-class ZipkinSpan(Span):
-    def __init__(self, trace_id, parent_id, id, name=None):
-        super().__init__(trace_id, parent_id, id, name)
-        self.attributes = []
+from .base import Target
 
 
 class ZipkinTarget(Target):
     """A target that sends traces to a zipkin server"""
-
-    _span_class = ZipkinSpan
-
-    @classmethod
-    def _gen_id(cls):
-        return os.urandom(8).hex()
 
     def __init__(self, url):
         self.url = url
@@ -49,9 +29,9 @@ class ZipkinTarget(Target):
 
     def finish(self, tags, span):
         obj = {
-            "traceId": span.trace_id,
-            "parentId": span.parent_id,
-            "id": span.id,
+            "traceId": span.trace_id_hex,
+            "parentId": span.parent_id_hex,
+            "id": span.id_hex,
             "timestamp": span.start_time // 1000,
             "duration": span.duration,
         }
@@ -64,16 +44,12 @@ class ZipkinTarget(Target):
         _set_tag(obj, tags, "remoteEndpoint")
         obj["tags"] = tags
 
-        annotations = [{"timestamp": a.timestamp, "value": a.value} for a in span.attributes]
+        annotations = [{"timestamp": a.timestamp, "value": a.name} for a in span.events]
         if len(annotations) > 0:
             obj["annotations"] = annotations
 
         payload = [obj]
         self._send(payload)
-
-    def event(self, name, tags, span=None):
-        if span is not None:
-            span.attributes.append(ZipkinAttribute(name))
 
 
 def _set_attr(payload, name, value):
