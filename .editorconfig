@@ -1,0 +1,17 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# for all files
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 2 
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# override in python files for consistency with Black
+[*.py]
+indent_size = 4

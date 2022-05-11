@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# change directory to the root of the repository
+cd "${0%/*/*}"
+
+# install the required python versions using pyenv
+while read -r version; do
+  pyenv install "$version"
+done < .python-version
