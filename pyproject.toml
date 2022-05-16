@@ -7,8 +7,9 @@ authors = [
 ]
 dependencies = [
     "requests~=2.26",
+    "rollbar~=0.16",
 ]
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 license = {text = "MIT"}
 
 [project.urls]
@@ -24,6 +25,8 @@ dev = [
     "mock~=4.0",
     "requests-mock~=1.9.3",
     "tox-pdm~=0.3.1",
+    "black~=22.3",
+    "pytest-order~=1.0",
 ]
 
 [build-system]
@@ -32,6 +35,8 @@ build-backend = "pdm.pep517.api"
 
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
+testpaths = ["tests"]
 
 [tool.black]
-line-length = 100
+line-length = 120
+target-version = ["py37"]
