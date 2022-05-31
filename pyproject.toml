@@ -6,9 +6,7 @@ authors = [
     {name = "Colin Putney", email = "colin.putney@descarteslabs.com"},
 ]
 dependencies = [
-    "requests~=2.26",
-    "rollbar~=0.16",
-]
+    "requests~=2.26"]
 requires-python = ">=3.7"
 license = {text = "MIT"}
 
