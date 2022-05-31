@@ -1,12 +1,18 @@
-# Mac 
+# mac
 .DS_Store
 
 # IDEs
 .vscode/
 
 # Python
-.pdm.toml
-.pytest_cache/
 __pycache__/
 __pypackages__/
+
+# testing
+.pytest_cache/
 .tox
+pytest.xml
+
+# packaging
+.pdm.toml
+dist/
