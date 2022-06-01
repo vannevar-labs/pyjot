@@ -1,6 +1,6 @@
 import pytest
-from jot import Telemeter, log
-from jot.base import Span, Target
+from jot import log
+from jot.base import Span, Target, Telemeter
 from jot.print import PrintTarget
 
 EXPECTED_TAGS = {"plonk": 42}

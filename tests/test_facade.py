@@ -1,9 +1,7 @@
 import jot
 import pytest
 from jot import log
-from jot.base import Span, Target
-from jot.print import PrintTarget
-from jot.telemeter import Telemeter
+from jot.base import Span, Target, Telemeter
 
 
 @pytest.fixture
