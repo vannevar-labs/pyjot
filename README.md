@@ -1,18 +1,19 @@
 Jot
 ===
 
-A library for instrumenting code and sending telemetry information to an aggregator. 
+A library for instrumenting code and sending telemetry information to an aggregator.
 
 
 ## Example
 
 ```python
 import jot
+from jot.print import PrintTarget
 
-# A target provides the destination for the telemetry data. If jot is not initialized, all 
+# A target provides the destination for the telemetry data. If jot is not initialized, all
 # telemetry will be ignored. `init()` also accepts a dictionary of tags to be applied to all
 # logs, metrics, errors and traces.
-jot.init(TargetClass(), {"environment": "staging"})
+jot.init(PrintTarget(), {"environment": "staging"})
 
 # Three levels of logging, with structured data
 jot.debug("debug message", {"more": "tags"})
