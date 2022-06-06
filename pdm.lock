@@ -214,7 +214,7 @@ summary = "A lil' TOML parser"
 
 [[package]]
 name = "tox"
-version = "3.24.5"
+version = "3.25.0"
 requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 summary = "tox is a generic virtualenv management and test command line tool"
 dependencies = [
@@ -278,7 +278,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "3.1"
-content_hash = "sha256:39fc095ab3162792db662d38773d3637d37d45d0425dbb37fc4894ca6ef6b8c7"
+content_hash = "sha256:b0627e4a9232256b5ed2c5fb274677f95874b1c51f6f4f5a335663c5d4d87ada"
 
 [metadata.files]
 "atomicwrites 1.4.0" = [
@@ -414,9 +414,9 @@ content_hash = "sha256:39fc095ab3162792db662d38773d3637d37d45d0425dbb37fc4894ca6
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
-"tox 3.24.5" = [
-    {file = "tox-3.24.5-py2.py3-none-any.whl", hash = "sha256:be3362472a33094bce26727f5f771ca0facf6dafa217f65875314e9a6600c95c"},
-    {file = "tox-3.24.5.tar.gz", hash = "sha256:67e0e32c90e278251fea45b696d0fef3879089ccbe979b0c556d35d5a70e2993"},
+"tox 3.25.0" = [
+    {file = "tox-3.25.0-py2.py3-none-any.whl", hash = "sha256:0805727eb4d6b049de304977dfc9ce315a1938e6619c3ab9f38682bb04662a5a"},
+    {file = "tox-3.25.0.tar.gz", hash = "sha256:37888f3092aa4e9f835fc8cc6dadbaaa0782651c41ef359e3a5743fcb0308160"},
 ]
 "tox-pdm 0.3.1" = [
     {file = "tox_pdm-0.3.1-py3-none-any.whl", hash = "sha256:e19cdc2417490bbbb1708eff67decdbd12437af401716feb0880eab6bdb78793"},
