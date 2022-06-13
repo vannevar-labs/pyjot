@@ -7,11 +7,15 @@ root = true
 [*]
 charset = utf-8
 end_of_line = lf
-indent_size = 2 
+indent_size = 2
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
 # override in python files for consistency with Black
 [*.py]
+indent_size = 4
+
+# override pyproject.toml because PDM often rewrites it
+[pyproject.toml]
 indent_size = 4
