@@ -49,7 +49,7 @@ def test_start_root():
 def test_start_child():
     parent = Span(1, 2, 3, "parent")
     target = Target()
-    child = target.start(parent, "child")
+    child = target.start(parent.trace_id, parent.id, name="child")
     assert child.trace_id == parent.trace_id
     assert child.parent_id == parent.id
     assert isinstance(child.id, bytes)

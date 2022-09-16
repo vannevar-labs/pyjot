@@ -17,21 +17,21 @@ def test_start_root():
 def test_start_child():
     target = ZipkinTarget(None)
     root = target.start()
-    span = target.start(root)
+    span = target.start(root.trace_id, root.id, name="span")
     check_ids(span)
     assert span.parent_id == root.id
 
 
 def test_start_name():
     target = ZipkinTarget(None)
-    span = target.start(None, "root span")
+    span = target.start(name="root span")
     assert span.name == "root span"
 
 
 def test_finish(requests_mock):
     target = ZipkinTarget("http://example.com/post")
     root = target.start()
-    span = target.start(root, "test-span")
+    span = target.start(root.trace_id, root.id, name="test-span")
     target.event("an event", {}, span)
     tags = {
         "pluff": 667,

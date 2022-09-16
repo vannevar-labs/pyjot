@@ -25,9 +25,18 @@ class Telemeter:
 
     """Tracing Methods"""
 
-    def start(self, name, dtags={}, **kwtags):
+    def start(self, name, dtags={}, trace_id=None, parent_id=None, **kwtags):
         tags = {**self.tags, **dtags, **kwtags}
-        span = self.target.start(self.span, name)
+        if trace_id is not None:
+            trace_id = trace_id
+            parent_id = parent_id
+        elif self.span is not None:
+            trace_id = self.span.trace_id
+            parent_id = self.span.id
+        else:
+            trace_id = None
+            parent_id = None
+        span = self.target.start(trace_id, parent_id, name=name)
         return Telemeter(self.target, span, **tags)
 
     def finish(self, dtags={}, **kwtags):
@@ -157,11 +166,8 @@ class Target:
     def accepts_log_level(self, level):
         return level <= self.level
 
-    def span(self, trace_id=None, parent_id=None, id=None, name=None):
+    def start(self, trace_id=None, parent_id=None, id=None, name=None):
         return Span(trace_id, parent_id, id, name)
-
-    def start(self, parent=None, name=None):
-        return Span.from_parent(parent, name)
 
     def finish(self, tags, span):
         pass
