@@ -14,10 +14,6 @@ class ZipkinTarget(Target):
         self.session = requests.Session()
 
     def _send(self, payload):
-
-        # FIXME: remove debugging code
-        print(json.dumps(payload))
-
         try:
             response = self.session.post(self.url, json=payload)
             if response.status_code > 299:
