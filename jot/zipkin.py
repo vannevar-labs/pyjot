@@ -29,7 +29,7 @@ class ZipkinTarget(Target):
             "parentId": span.parent_id_hex,
             "id": span.id_hex,
             "timestamp": span.start_time // 1000,
-            "duration": span.duration,
+            "duration": span.duration // 1000,
         }
 
         _set_attr(obj, "name", span.name)

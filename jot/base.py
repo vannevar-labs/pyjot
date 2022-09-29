@@ -1,18 +1,9 @@
-import codecs
 import random
 from time import monotonic_ns, time_ns
 
+from jot.util import hex_encode as _hex_encode
+
 from . import log
-
-_to_hex = codecs.getencoder("hex")
-_to_str = codecs.getdecoder("ascii")
-
-
-def _hex_encode(id):
-    if id is None:
-        return None
-    hexbytes = _to_hex(id)[0]
-    return _to_str(hexbytes)[0]
 
 
 class Telemeter:
