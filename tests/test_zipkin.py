@@ -50,7 +50,7 @@ def test_finish(requests_mock):
     payload = json.loads(requests_mock.last_request.text)
 
     assert isinstance(payload, list)
-    assert len(payload) is 1
+    assert len(payload) == 1
     s = payload[0]
 
     assert_is_id(s, "id")

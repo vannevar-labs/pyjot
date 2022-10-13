@@ -116,7 +116,6 @@ def test_with_error(mocker):
         pass
 
     spy.assert_called_once()
-    print(spy.call_args.args)
     assert spy.call_args.args[0] == "Error during child"
     assert isinstance(spy.call_args.args[1], ZeroDivisionError)
     assert spy.call_args.args[2]["nork"] == 6

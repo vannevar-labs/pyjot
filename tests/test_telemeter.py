@@ -99,7 +99,6 @@ def test_finish(jot, mocker):
     jot.finish()
 
     sspy.assert_called_once_with()
-    print(tspy.call_args)
     tspy.assert_called_once_with({"plonk": 42}, jot.span)
 
 
@@ -110,7 +109,6 @@ def test_finish_tags(jot, mocker, dtags, kwtags):
     jot.finish(dtags, **kwtags)
 
     sspy.assert_called_once_with()
-    print(tspy.call_args)
     expected_tags = {"plonk": 42, **dtags, **kwtags}
     tspy.assert_called_once_with(expected_tags, jot.span)
 
