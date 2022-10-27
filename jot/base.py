@@ -141,6 +141,10 @@ class Span:
         _clock_finish = self._clock_finish if self._clock_finish is not None else monotonic_ns()
         return _clock_finish - self._clock_start
 
+    @duration.setter
+    def duration(self, ns):
+        self._clock_finish = self._clock_start + ns
+
     #
     # events
     #
