@@ -57,8 +57,8 @@ def count(*args, **kwargs):
 
 
 @_contextmanager
-def span(name, dtags={}, trace_id=None, parent_id=None, **kwtags):
-    child = active.start(name, dtags, trace_id, parent_id, **kwtags)
+def span(name, dtags={}, /, *, trace_id=None, parent_id=None, **kwtags):
+    child = active.start(name, dtags, trace_id=trace_id, parent_id=parent_id, **kwtags)
     _push(child)
 
     try:

@@ -21,7 +21,7 @@ def __setattr__(name, value):
         globals()[name] = value
 
 
-def init(target, dtags={}, **kwtags):
+def init(target, dtags={}, /, **kwtags):
     facade.active = base.Telemeter(target, None, dtags, **kwtags)
     facade.stack = []
     flush.init()
