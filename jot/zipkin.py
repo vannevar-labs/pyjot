@@ -1,6 +1,4 @@
 import traceback
-from time import time_ns
-import json
 
 import requests
 from .base import Target

@@ -1,17 +1,15 @@
-import random
-from cmath import exp
-from io import StringIO
 import os
+import random
+from io import StringIO
 
-import psycopg2
 import pytest
 
 import jot
 from jot import log
 from jot.base import Target
-from jot.pg import JotCursor
 
-PG_CONNECTION_PARAMS = ["user", "password", "host", "port", "database",]
+PG_CONNECTION_PARAMS = ["user", "password", "host", "port", "database"]
+
 
 def pg_connection_args():
     args = {}
@@ -20,6 +18,7 @@ def pg_connection_args():
         if env_var_name in os.environ:
             args[p] = os.environ[env_var_name]
     return args
+
 
 @pytest.fixture(autouse=True)
 def init():
@@ -35,6 +34,11 @@ def finish(mocker):
 def connection(request):
     if "PG_TESTS" not in os.environ:
         pytest.skip("Psycopg2 tests not configured")
+
+    import psycopg2
+
+    from jot.pg import JotCursor
+
     ctl_args = pg_connection_args()
     ctl_args["database"] = "postgres"
     ctlconn = psycopg2.connect(**ctl_args)
@@ -58,6 +62,8 @@ def connection(request):
 
 @pytest.fixture
 def silent_cursor(connection):
+    import psycopg2
+
     cursor = connection.cursor(cursor_factory=psycopg2.extensions.cursor)
     yield cursor
     cursor.close()
@@ -72,6 +78,8 @@ def cursor(connection):
 
 @pytest.fixture(scope="session")
 def kv_table(connection):
+    import psycopg2
+
     cursor = connection.cursor(cursor_factory=psycopg2.extensions.cursor)
     cursor.execute("create table kv(k text, v integer)")
     yield
@@ -80,6 +88,8 @@ def kv_table(connection):
 
 @pytest.fixture
 def kv_empty(connection, kv_table):
+    import psycopg2
+
     cursor = connection.cursor(cursor_factory=psycopg2.extensions.cursor)
     cursor.execute("truncate table kv")
 
@@ -128,7 +138,10 @@ def rows(request, connection, finish):
 execute_parameters = [
     ["select * from pg_tables", None],
     ["select * from pg_tables where tablename = %s", ["pg_namespace"]],
-    ["select * from pg_tables where tablename = %s or tablename = %s", ["pg_namespace", "pg_class"]],
+    [
+        "select * from pg_tables where tablename = %s or tablename = %s",
+        ["pg_namespace", "pg_class"],
+    ],
 ]
 
 
@@ -183,7 +196,7 @@ def test_callproc_del(connection, finish):
 @pytest.mark.rows(3)
 def test_fetch_all(rows, finish):
     all = rows.fetchall()
-    assert type(all) == list
+    assert isinstance(all, list)
     assert len(all) == 3
     finish.assert_called_once()
 
@@ -191,7 +204,7 @@ def test_fetch_all(rows, finish):
 @pytest.mark.rows(2)
 def test_fetchone(rows, finish):
     first = rows.fetchone()
-    assert type(first) == tuple
+    assert isinstance(first, tuple)
     finish.assert_not_called()
 
 
@@ -199,7 +212,7 @@ def test_fetchone(rows, finish):
 def test_fetchone_last(rows, finish):
     first = rows.fetchone()
     assert type(first) == tuple
-    second = rows.fetchone()
+    rows.fetchone()
     finish.assert_called_once()
 
 
@@ -213,7 +226,7 @@ def test_fetchone_extra(rows, finish):
 @pytest.mark.rows(3)
 def test_fetchmany_partial(rows, finish):
     rows = rows.fetchmany(2)
-    assert type(rows) == list
+    assert isinstance(rows, list)
     assert len(rows) == 2
     assert type(rows[0]) == tuple
 

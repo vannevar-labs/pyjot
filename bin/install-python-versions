@@ -6,4 +6,7 @@ cd "${0%/*/*}"
 # install the required python versions using pyenv
 while read -r version; do
   pyenv install "$version"
+
+  interpreter="python${version%.*}"
+  $interpreter -m ensurepip --upgrade
 done < .python-version
