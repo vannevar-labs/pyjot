@@ -1,4 +1,18 @@
-from jot.util import hex_encode, hex_decode
+from jot.base import _add_caller_tags
+from jot.util import hex_decode, hex_encode
+
+
+def test_make_add_caller_tags():
+    tags = {}
+
+    def inner(tags):
+        return _add_caller_tags(tags)
+
+    inner(tags)
+    assert tags["file"] == __file__
+    assert tags["line"] == 9
+    assert tags["function"] == "inner"
+
 
 def test_from_hex():
     actual = hex_decode("be71ef7f12c881e0fa9c01396a4a47db")
@@ -15,6 +29,7 @@ def test_to_hex():
     actual = hex_encode(b"\xbeq\xef\x7f\x12\xc8\x81\xe0\xfa\x9c\x019jJG\xdb")
     expected = "be71ef7f12c881e0fa9c01396a4a47db"
     assert actual == expected
+
 
 def test_to_hex_none():
     actual = hex_encode(None)

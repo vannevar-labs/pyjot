@@ -2,10 +2,12 @@ from jot.base import Span
 
 HEX_ALPHABET = "0123456789abcdef"
 
+
 def assert_is_hex(value):
     assert isinstance(value, str)
     for c in value:
         assert c in HEX_ALPHABET
+
 
 def test_constructor_defaults():
     span = Span()
@@ -45,10 +47,12 @@ def test_trace_id_hex():
     assert_is_hex(value)
     assert len(value) == 32
 
+
 def test_parent_id_hex():
     value = Span(parent_id=Span.gen_span_id()).parent_id_hex
     assert_is_hex(value)
     assert len(value) == 16
+
 
 def test_id_hex():
     value = Span().id_hex

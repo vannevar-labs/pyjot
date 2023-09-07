@@ -1,6 +1,6 @@
 import pytest
 from jot import log
-from jot.base import Span, Target
+from jot.base import Target
 from jot.fanout import FanOutTarget
 
 TAGS_INDEX = -2
@@ -17,7 +17,6 @@ def fan():
 @pytest.fixture
 def assert_forwards(fan, mocker):
     def _assert_forwards(method_name, *args):
-
         # create the mocks
         zero = mocker.spy(fan.targets[0], method_name)
         one = mocker.spy(fan.targets[1], method_name)
@@ -92,6 +91,7 @@ def test_magnitude(assert_forwards):
 
 def test_count(assert_forwards):
     assert_forwards("count", "metric name", 6)
+
 
 def test_log_warning(fan, mocker):
     "Assert the fanout target honors log level when forwarding"

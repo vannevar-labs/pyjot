@@ -7,7 +7,6 @@ from . import facade as _facade
 
 def generator(name, **static_tags):
     def decorator(func):
-
         # first create the wrapper
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

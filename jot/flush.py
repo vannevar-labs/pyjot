@@ -4,9 +4,15 @@ import sys
 from . import facade as _facade
 
 _flush_handlers = []
+_intialized = False
 
 
 def init():
+    global _intialized
+    if _intialized:
+        return
+    _intialized = True
+
     # If an exception reaches the top of the stack without getting caught, this function will get called.
     # We want to report that exception, *unless* it's a KeyboardInterrupt (ie, the user pressed ^C).
     def report_uncaught_exception(exc_type, exc, exc_traceback):

@@ -7,12 +7,16 @@
 # Python
 __pycache__/
 __pypackages__/
+.venv/
 
 # testing
 .pytest_cache/
 .tox
 pytest.xml
+lib/
 
 # packaging
 .pdm.toml
+.pdm-python
 dist/
+build/

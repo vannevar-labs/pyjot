@@ -1,5 +1,6 @@
-import jot
 import pytest
+
+import jot
 from jot import log
 from jot.base import Span, Target, Telemeter
 
@@ -44,6 +45,12 @@ def test_init_tags(dtags, kwtags, assert_tags_are_correct):
     assert_tags_are_correct(jot.active)
 
 
+def test_init_dtag_tag():
+    target = Target()
+    jot.init(target, dtags="lorf")
+    assert jot.active.tags == {"dtags": "lorf"}
+
+
 def test_start():
     jot.init(Target(), loozy=34)
     parent = jot.active
@@ -71,7 +78,6 @@ def test_finish():
 
 
 def test_finish_forwards(assert_forwards):
-    parent = jot.active
     jot.start("child")
     assert_forwards("finish")
 
@@ -121,6 +127,17 @@ def test_with_error(mocker):
     assert spy.call_args.args[2]["nork"] == 6
     assert isinstance(spy.call_args.args[3], Span)
     assert spy.call_args.args[3].parent_id == jot.active.span.id
+
+
+def test_with_dtags_tag():
+    with jot.span("child", dtags="nork") as child:
+        assert child.tags["dtags"] == "nork"
+
+
+def test_with_no_positional_trace_id():
+    with pytest.raises(TypeError):
+        with jot.span("child", {}, "trace-id"):
+            pass
 
 
 def test_event(assert_forwards):
