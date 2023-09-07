@@ -1,7 +1,4 @@
-from . import facade
-from . import flush
-from . import decorators
-from . import base
+from . import base, decorators, facade, flush, logger
 
 # allow extensions to the jot namespace
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
@@ -21,7 +18,7 @@ def __setattr__(name, value):
         globals()[name] = value
 
 
-def init(target, dtags={}, **kwtags):
+def init(target, dtags={}, /, **kwtags):
     facade.active = base.Telemeter(target, None, dtags, **kwtags)
     facade.stack = []
     flush.init()
@@ -42,3 +39,7 @@ span = facade.span
 # re-export generator functions
 generator = decorators.generator
 tag = decorators.tag
+
+# re-export logger functions
+handle_logs = logger.handle_logs
+ignore_logs = logger.ignore_logs

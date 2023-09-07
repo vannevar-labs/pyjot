@@ -1,6 +1,7 @@
 from copy import copy
 from .base import Target
 
+
 def _forward(method):
     def wrapped(self, *args):
         # Targets are expecting to be able to modify tags dictionaries without causing problems, so
