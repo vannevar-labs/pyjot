@@ -1,7 +1,4 @@
-from . import facade
-from . import flush
-from . import decorators
-from . import base
+from . import base, decorators, facade, flush
 
 # allow extensions to the jot namespace
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)

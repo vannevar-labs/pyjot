@@ -155,7 +155,7 @@ class Span:
 class Target:
     """A target that ignores all telemetry"""
 
-    def __init__(self, level=log.WARNING):
+    def __init__(self, level=log.DEFAULT):
         self.level = level
 
     def accepts_log_level(self, level):

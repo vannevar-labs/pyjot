@@ -14,7 +14,7 @@ def _now():
 class PrintTarget(Target):
     """A target the prints telemetry to stderr"""
 
-    def __init__(self, level=log.WARNING, file=sys.stderr):
+    def __init__(self, level=log.DEFAULT, file=sys.stderr):
         super().__init__(level)
         self._file = file
 

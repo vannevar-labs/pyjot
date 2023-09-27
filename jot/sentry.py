@@ -33,7 +33,7 @@ class SentryTarget(Target):
         if client is not None:
             client.flush()
 
-    def __init__(self, level=log.WARNING, **kwargs):
+    def __init__(self, level=log.DEFAULT, **kwargs):
         self.init_sentry(**kwargs)
         super().__init__(level)
         self.spans = {}
