@@ -196,7 +196,7 @@ def test_callproc_del(connection, finish):
 @pytest.mark.rows(3)
 def test_fetch_all(rows, finish):
     all = rows.fetchall()
-    assert type(all) == list
+    assert isinstance(all, list)
     assert len(all) == 3
     finish.assert_called_once()
 
@@ -204,7 +204,7 @@ def test_fetch_all(rows, finish):
 @pytest.mark.rows(2)
 def test_fetchone(rows, finish):
     first = rows.fetchone()
-    assert type(first) == tuple
+    assert isinstance(first, tuple)
     finish.assert_not_called()
 
 
@@ -212,7 +212,7 @@ def test_fetchone(rows, finish):
 def test_fetchone_last(rows, finish):
     first = rows.fetchone()
     assert type(first) == tuple
-    second = rows.fetchone()
+    rows.fetchone()
     finish.assert_called_once()
 
 
@@ -226,7 +226,7 @@ def test_fetchone_extra(rows, finish):
 @pytest.mark.rows(3)
 def test_fetchmany_partial(rows, finish):
     rows = rows.fetchmany(2)
-    assert type(rows) == list
+    assert isinstance(rows, list)
     assert len(rows) == 2
     assert type(rows[0]) == tuple
 

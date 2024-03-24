@@ -30,7 +30,7 @@ def test_start_root(target, mocker):
         "trace_id": span.trace_id_hex,
         "parent_span_id": None,
         "span_id": span.id_hex,
-        "same_process_as_parent": None
+        "same_process_as_parent": None,
     }
     assert target.spans[span.id] == mock.return_value
 
@@ -46,7 +46,7 @@ def test_start_child(target, mocker):
         "op": "test-child",
         "description": "test-child",
         "span_id": child.id_hex,
-        "same_process_as_parent": True
+        "same_process_as_parent": True,
     }
     assert target.spans[child.id] == mock.return_value
 
@@ -69,11 +69,7 @@ def test_log(target, mocker):
 
     mock.assert_called_once()
     assert mock.call_args.args == ("test message",)
-    assert mock.call_args.kwargs == {
-        "level": "warning",
-        "contexts": None,
-        "tags": {"plonk": 55}
-    }
+    assert mock.call_args.kwargs == {"level": "warning", "contexts": None, "tags": {"plonk": 55}}
 
 
 def test_error(target, mocker):
@@ -87,12 +83,8 @@ def test_error(target, mocker):
     assert mock.call_args.kwargs == {
         "level": "error",
         "contexts": {
-            "trace": {
-                "trace_id": span.trace_id_hex,
-                "span_id": span.id_hex,
-                "op": span.name
-            }
+            "trace": {"trace_id": span.trace_id_hex, "span_id": span.id_hex, "op": span.name}
         },
         "extras": {"message": "test message"},
-        "tags": {"plonk": 55}
+        "tags": {"plonk": 55},
     }

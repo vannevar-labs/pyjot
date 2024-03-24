@@ -3,6 +3,7 @@ import pytest
 from jot import log
 from jot.base import Target
 
+
 @pytest.fixture(autouse=True)
 def init():
     jot.init(Target(level=log.ALL))
@@ -194,18 +195,24 @@ def test_gen4_keyword_declared_tag(mocker):
             assert "a" not in tags
             assert "thop" not in tags
 
+
 def test_tag_unwrapped_function():
     with pytest.raises(RuntimeError) as exc:
+
         @jot.tag("florn")
-        def thefn(): pass
+        def thefn():
+            pass
 
     assert exc.match("thefn\\(\\) isn't decorated by jot")
 
+
 def test_tag_no_whitelist_necessary():
     with pytest.warns(UserWarning) as w:
+
         @jot.tag("florn")
         @jot.generator("thefn")
-        def thefn(): pass
+        def thefn():
+            pass
 
     assert len(w) == 1
     assert w[0].message.args[0] == "thefn() doesn't need tag decorations"

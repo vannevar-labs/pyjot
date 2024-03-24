@@ -1,7 +1,6 @@
 import sys
 import time
 
-from traceback import print_exception
 
 from . import log
 from .base import Target

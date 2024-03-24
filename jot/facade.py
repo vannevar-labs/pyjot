@@ -1,4 +1,3 @@
-import sys
 from contextlib import contextmanager as _contextmanager
 
 from .base import Telemeter

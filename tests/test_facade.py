@@ -1,5 +1,6 @@
-import jot
 import pytest
+
+import jot
 from jot import log
 from jot.base import Span, Target, Telemeter
 
@@ -77,7 +78,6 @@ def test_finish():
 
 
 def test_finish_forwards(assert_forwards):
-    parent = jot.active
     jot.start("child")
     assert_forwards("finish")
 

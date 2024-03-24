@@ -1,6 +1,3 @@
-import sys
-from os import access
-
 import rollbar
 
 from jot import log
