@@ -3,10 +3,9 @@
 
 [metadata]
 groups = ["default", "postgres", "rollbar", "dev", "sentry"]
-cross_platform = true
-static_urls = false
-lock_version = "4.3"
-content_hash = "sha256:67a2e66476997e82feff047c213fb2a5c44fd07293fe8172e5dd7c73689b8ce7"
+strategy = ["cross_platform"]
+lock_version = "4.4.1"
+content_hash = "sha256:1b2ae067c6b9acaad272afce8f7fe769ce8e7c3b1e47a8b9c0daff1aa1176a6f"
 
 [[package]]
 name = "atomicwrites"
@@ -77,6 +76,14 @@ dependencies = [
 files = [
     {file = "bleach-5.0.1-py3-none-any.whl", hash = "sha256:085f7f33c15bd408dd9b17a4ad77c577db66d76203e5984b1bd59baeee948b2a"},
     {file = "bleach-5.0.1.tar.gz", hash = "sha256:0d03255c47eb9bd2f26aa9bb7f2107732e7e8fe195ca2f64709fcf3b0a4a085c"},
+]
+
+[[package]]
+name = "callee"
+version = "0.3.1"
+summary = "Argument matchers for unittest.mock"
+files = [
+    {file = "callee-0.3.1.tar.gz", hash = "sha256:056f95d7760c87ce470aa4ab83bab5f9bdf090d4ecf77d52efe9c4559c0aefd3"},
 ]
 
 [[package]]
