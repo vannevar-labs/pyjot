@@ -7,6 +7,20 @@ from callee.numbers import Integer
 import jot
 from jot.base import Span
 
+IGNORED_TAGS = {"taskName"}
+
+
+class ExpectedTags:
+    def __init__(self, **kwargs):
+        self.expected_dict = kwargs
+
+    def __eq__(self, actual_dict):
+        filtered_actual = {k: v for k, v in actual_dict.items() if k not in IGNORED_TAGS}
+        return self.expected_dict == filtered_actual
+
+    def __repr__(self):
+        return f"ExpectedTags({self.expected_dict})"
+
 
 @pytest.fixture(autouse=True)
 def init():
@@ -70,13 +84,13 @@ def test_jot_via_logger(mocker, py2jot, filename, spy, level_method_name):
 
     log_function(log_message, extra={"plonk": 42})
 
-    expected_tags = {
-        "file": filename,
-        "line": Integer(),
-        "function": "test_jot_via_logger",
-        "logger": "py2jot",
-        "plonk": "42",
-    }
+    expected_tags = ExpectedTags(
+        file=filename,
+        line=Integer(),
+        function="test_jot_via_logger",
+        logger="py2jot",
+        plonk="42",
+    )
     spy.assert_called_once_with(jot_level, log_message, expected_tags, jot.active.span)
 
 
