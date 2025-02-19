@@ -1,5 +1,6 @@
 [project]
 name = "dl-jot"
+version = "0.1.0"
 description = "A library for instrumenting code and sending telemetry information to an aggregator"
 requires-python = ">=3.8"
 license = { text = "MIT" }
@@ -30,7 +31,6 @@ dev = [
     "pytest-order~=1.0",
     "pytest~=6.2",
     "requests-mock~=1.9.3",
-    "tox-pdm~=0.3.1",
     "tox>=3.25.0",
     "twine~=4.0.1",
     "callee>=0.3.1",
@@ -42,6 +42,5 @@ mock_use_standalone_module = true
 testpaths = ["tests"]
 markers = ["rows"]
 
-[tool.black]
-line-length = 120
-target-version = ["py37"]
+[tool.hatch.build.targets.wheel]
+packages = ["jot"]
