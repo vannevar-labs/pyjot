@@ -4,6 +4,5 @@
 
   - sampling
   - otel protocol support
-  - Python logging support
   - multithreading in facade
-  - multipackage support
+  - multipackage distribution
