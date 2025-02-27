@@ -1,8 +1,23 @@
+import inspect
+
 import pytest
+from callee.numbers import Integer
 
 import jot
 from jot import log
 from jot.base import Span, Target, Telemeter
+
+
+def caller_tags(**kwtags):
+    frame = inspect.currentframe()
+    frame = frame.f_back
+    return {
+        **kwtags,
+        "ctx": 1,
+        "file": __file__,
+        "line": Integer(),
+        "function": frame.f_code.co_name,
+    }
 
 
 @pytest.fixture
@@ -19,6 +34,11 @@ def assert_forwards(mocker):
         spy.assert_called_once_with(*args, **kwargs)
 
     return _assert_forwards
+
+
+@pytest.fixture
+def log_spy(mocker):
+    return mocker.spy(jot.active.target, "log")
 
 
 @pytest.fixture(autouse=True)
@@ -169,3 +189,18 @@ def test_magnitude(assert_forwards):
 
 def test_count(assert_forwards):
     assert_forwards("count", "requests", 99, {"plonk": 96}, bink=42)
+
+
+def test_debug_caller(log_spy):
+    jot.debug("message")
+    log_spy.assert_called_once_with(log.DEBUG, "message", caller_tags(), jot.active.span)
+
+
+def test_info_caller(log_spy):
+    jot.info("message")
+    log_spy.assert_called_once_with(log.INFO, "message", caller_tags(), jot.active.span)
+
+
+def test_warning_caller(log_spy):
+    jot.warning("message")
+    log_spy.assert_called_once_with(log.WARNING, "message", caller_tags(), jot.active.span)

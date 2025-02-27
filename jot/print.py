@@ -1,6 +1,6 @@
 import sys
 import time
-
+import traceback
 
 from . import log
 from .base import Target
@@ -35,7 +35,8 @@ class PrintTarget(Target):
 
     def error(self, message, exception, tags, span=None):
         self._write(span, tags, "Error:", message)
-        print(exception)
+        lines = traceback.format_exception(type(exception), exception, exception.__traceback__)
+        print("".join(lines), file=self._file)
 
     def magnitude(self, name, value, tags, span=None):
         self._write(span, tags, f"{name}={value}")

@@ -2,11 +2,9 @@ import random
 from time import monotonic_ns, time_ns
 
 from jot.util import hex_encode as _hex_encode
-from jot.util import make_add_caller_tags as __make_add_caller_tags
 
 from . import log
-
-_add_caller_tags = __make_add_caller_tags(__file__)
+from .util import add_caller_tags
 
 
 class Telemeter:
@@ -47,19 +45,19 @@ class Telemeter:
     def debug(self, message, dtags={}, /, **kwtags):
         if self.target.accepts_log_level(log.DEBUG):
             tags = {**self.tags, **dtags, **kwtags}
-            _add_caller_tags(tags)
+            add_caller_tags(tags)
             self.target.log(log.DEBUG, message, tags, self.span)
 
     def info(self, message, dtags={}, /, **kwtags):
         if self.target.accepts_log_level(log.INFO):
             tags = {**self.tags, **dtags, **kwtags}
-            _add_caller_tags(tags)
+            add_caller_tags(tags)
             self.target.log(log.INFO, message, tags, self.span)
 
     def warning(self, message, dtags={}, /, **kwtags):
         if self.target.accepts_log_level(log.WARNING):
             tags = {**self.tags, **dtags, **kwtags}
-            _add_caller_tags(tags)
+            add_caller_tags(tags)
             self.target.log(log.WARNING, message, tags, self.span)
 
     """Error methods"""

@@ -1,16 +1,15 @@
-from jot.base import _add_caller_tags
-from jot.util import hex_decode, hex_encode
+from jot.util import add_caller_tags, hex_decode, hex_encode
 
 
-def test_make_add_caller_tags():
+def test_add_caller_tags():
     tags = {}
 
     def inner(tags):
-        return _add_caller_tags(tags)
+        return add_caller_tags(tags)
 
     inner(tags)
     assert tags["file"] == __file__
-    assert tags["line"] == 9
+    assert tags["line"] == 8
     assert tags["function"] == "inner"
 
 
