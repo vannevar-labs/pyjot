@@ -26,11 +26,11 @@ dev = [
     "pytest~=6.2",
     "requests-mock~=1.9.3",
     "tox>=3.25.0",
-    "twine~=4.0.1",
     "callee>=0.3.1",
     "pre-commit>=2.21.0",
     "tox-uv>=1.13.1",
     "tox-gh-actions>=3.2.0",
+    "hatchling>=1.27.0",
 ]
 
 [tool.pytest.ini_options]

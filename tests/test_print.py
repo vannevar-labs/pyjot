@@ -77,11 +77,16 @@ def test_log(target, span, tags):
 
 def test_error(target, span, tags):
     try:
-        1 / 0
+        return 1 / 0
     except ZeroDivisionError as err:
         target.error("got-error", err, tags, span)
     output = target._file.getvalue()
-    assert output == "[e2d8cc0b5bef5c8b/1] plonk=lorp wiff=nonk Error: got-error\n"
+    assert output.startswith("[e2d8cc0b5bef5c8b/1] plonk=lorp wiff=nonk Error: got-error\n")
+    assert "Traceback (most recent call last):" in output
+    assert "ZeroDivisionError: division by zero" in output
+    assert "test_print.py" in output
+    assert "test_error" in output
+    assert "1 / 0" in output
 
 
 def test_magnitude(target, span, tags):
