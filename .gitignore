@@ -20,3 +20,7 @@ lib/
 .pdm-python
 dist/
 build/
+
+# env
+.pg_logs
+.postgres/
