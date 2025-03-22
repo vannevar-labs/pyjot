@@ -53,7 +53,7 @@ def root():
 
 def test_rootless():
     child = jot.start("child")
-    assert child.span.parent_id is None
+    assert child.active_span.parent_id is None
 
 
 def test_active_meter():
@@ -65,7 +65,7 @@ def test_init():
     jot.init(target)
     assert jot.active_meter.target is target
     assert jot.active_meter.tags == {}
-    assert jot.active_meter.span is None
+    assert jot.active_meter.active_span is None
 
 
 def test_init_tags(tags, assert_tags_are_correct):
@@ -87,11 +87,11 @@ def test_start():
 
     assert jot.active_meter is parent
     assert child is not parent
-    assert child.span is not None
-    assert isinstance(child.span.trace_id, bytes)
-    assert child.span.parent_id is None
-    assert isinstance(child.span.id, bytes)
-    assert child.span.name == "child"
+    assert child.active_span is not None
+    assert isinstance(child.active_span.trace_id, bytes)
+    assert child.active_span.parent_id is None
+    assert isinstance(child.active_span.id, bytes)
+    assert child.active_span.name == "child"
 
 
 def test_start_tags(tags, assert_child_tags_are_correct):
@@ -160,14 +160,14 @@ def test_warning_caller(log_spy):
 
 def test_debug_caller_rooted(root, log_spy):
     root.debug("message")
-    log_spy.assert_called_once_with(log.DEBUG, "message", caller_tags(ctx=1), root.span)
+    log_spy.assert_called_once_with(log.DEBUG, "message", caller_tags(ctx=1), root.active_span)
 
 
 def test_info_caller_rooted(root, log_spy):
     root.info("message")
-    log_spy.assert_called_once_with(log.INFO, "message", caller_tags(ctx=1), root.span)
+    log_spy.assert_called_once_with(log.INFO, "message", caller_tags(ctx=1), root.active_span)
 
 
 def test_warning_caller_rooted(root, log_spy):
     root.warning("message")
-    log_spy.assert_called_once_with(log.WARNING, "message", caller_tags(ctx=1), root.span)
+    log_spy.assert_called_once_with(log.WARNING, "message", caller_tags(ctx=1), root.active_span)

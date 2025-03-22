@@ -10,9 +10,9 @@ from .util import add_caller_tags
 class Meter:
     """The instrumentation interface"""
 
-    def __init__(self, target=None, span=None, /, **tags) -> None:
+    def __init__(self, target=None, active_span=None, /, **tags) -> None:
         self.target = target if target is not None else Target()
-        self.span = span
+        self.active_span = active_span
         self.tags = tags
 
     """Tracing Methods"""
@@ -22,9 +22,9 @@ class Meter:
         if trace_id is not None:
             trace_id = trace_id
             parent_id = parent_id
-        elif self.span is not None:
-            trace_id = self.span.trace_id
-            parent_id = self.span.id
+        elif self.active_span is not None:
+            trace_id = self.active_span.trace_id
+            parent_id = self.active_span.id
         else:
             trace_id = None
             parent_id = None
@@ -32,18 +32,18 @@ class Meter:
         return Meter(self.target, span, **tags)
 
     def finish(self, /, **kwtags):
-        if self.span is None:
+        if self.active_span is None:
             raise RuntimeError("No active span to finish")
-        if self.span.is_finished():
+        if self.active_span.is_finished():
             raise RuntimeError("Span is already finished")
 
         tags = {**self.tags, **kwtags}
-        self.span.finish()
-        self.target.finish(tags, self.span)
+        self.active_span.finish()
+        self.target.finish(tags, self.active_span)
 
     def event(self, name, /, **kwtags):
         tags = {**self.tags, **kwtags}
-        self.target.event(name, tags, self.span)
+        self.target.event(name, tags, self.active_span)
 
     """Logging methods"""
 
@@ -51,37 +51,37 @@ class Meter:
         if self.target.accepts_log_level(log.DEBUG):
             tags = {**self.tags, **kwtags}
             add_caller_tags(tags)
-            self.target.log(log.DEBUG, message, tags, self.span)
+            self.target.log(log.DEBUG, message, tags, self.active_span)
 
     def info(self, message, /, **kwtags):
         if self.target.accepts_log_level(log.INFO):
             tags = {**self.tags, **kwtags}
             add_caller_tags(tags)
-            self.target.log(log.INFO, message, tags, self.span)
+            self.target.log(log.INFO, message, tags, self.active_span)
 
     def warning(self, message, /, **kwtags):
         if self.target.accepts_log_level(log.WARNING):
             tags = {**self.tags, **kwtags}
             add_caller_tags(tags)
-            self.target.log(log.WARNING, message, tags, self.span)
+            self.target.log(log.WARNING, message, tags, self.active_span)
 
     """Error methods"""
 
     def error(self, message, exception, /, **kwtags):
         tags = {**self.tags, **kwtags}
-        self.target.error(message, exception, tags, self.span)
+        self.target.error(message, exception, tags, self.active_span)
 
     """Metrics methods"""
 
     def magnitude(self, name, value, /, **kwtags):
         # TODO: check that value is a number
         tags = {**self.tags, **kwtags}
-        self.target.magnitude(name, value, tags, self.span)
+        self.target.magnitude(name, value, tags, self.active_span)
 
     def count(self, name, value, /, **kwtags):
         # TODO: check that value is an integer
         tags = {**self.tags, **kwtags}
-        self.target.count(name, value, tags, self.span)
+        self.target.count(name, value, tags, self.active_span)
 
 
 class Event:

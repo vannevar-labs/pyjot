@@ -1,7 +1,7 @@
 import pytest
 
 from jot import log
-from jot.base import Target, Meter
+from jot.base import Meter, Target
 
 EXPECTED_TAGS = {"plonk": 42}
 
@@ -18,17 +18,17 @@ def jot():
 
 
 def test_finish(jot, mocker):
-    sspy = mocker.spy(jot.span, "finish")
+    sspy = mocker.spy(jot.active_span, "finish")
     tspy = mocker.spy(jot.target, "finish")
 
     jot.finish()
 
     sspy.assert_called_once_with()
-    tspy.assert_called_once_with(EXPECTED_TAGS, jot.span)
+    tspy.assert_called_once_with(EXPECTED_TAGS, jot.active_span)
 
 
 def test_double_finish(jot, mocker):
-    sspy = mocker.spy(jot.span, "finish")
+    sspy = mocker.spy(jot.active_span, "finish")
     tspy = mocker.spy(jot.target, "finish")
 
     jot.finish()
@@ -39,21 +39,21 @@ def test_double_finish(jot, mocker):
     assert str(excinfo.value) == "Span is already finished"
 
     sspy.assert_called_once_with()
-    tspy.assert_called_once_with(EXPECTED_TAGS, jot.span)
+    tspy.assert_called_once_with(EXPECTED_TAGS, jot.active_span)
 
 
 def test_finish_tags(jot, mocker, tags):
-    sspy = mocker.spy(jot.span, "finish")
+    sspy = mocker.spy(jot.active_span, "finish")
     tspy = mocker.spy(jot.target, "finish")
 
     jot.finish(**tags)
 
     sspy.assert_called_once_with()
     expected_tags = {**EXPECTED_TAGS, **tags}
-    tspy.assert_called_once_with(expected_tags, jot.span)
+    tspy.assert_called_once_with(expected_tags, jot.active_span)
 
 
 def test_finish_dtags_tag(jot, mocker):
     tspy = mocker.spy(jot.target, "finish")
     jot.finish(dtags="gronk")
-    tspy.assert_called_once_with(tags(dtags="gronk"), jot.span)
+    tspy.assert_called_once_with(tags(dtags="gronk"), jot.active_span)
