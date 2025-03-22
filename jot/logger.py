@@ -77,7 +77,9 @@ class JotLoggingHandler(logging.Handler):
             tags[attr] = str(getattr(record, attr))
 
         if jot.active_meter.target.accepts_log_level(level):
-            jot.active_meter.target.log(level, record.getMessage(), tags, jot.active_meter.span)
+            jot.active_meter.target.log(
+                level, record.getMessage(), tags, jot.active_meter.active_span
+            )
 
 
 class LoggerTarget(Target):
