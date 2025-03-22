@@ -32,6 +32,11 @@ class Telemeter:
         return Telemeter(self.target, span, **tags)
 
     def finish(self, dtags={}, /, **kwtags):
+        if self.span is None:
+            raise RuntimeError("No active span to finish")
+        if self.span.is_finished():
+            raise RuntimeError("Span is already finished")
+
         tags = {**self.tags, **dtags, **kwtags}
         self.span.finish()
         self.target.finish(tags, self.span)
@@ -112,6 +117,9 @@ class Span:
 
     def finish(self):
         self._clock_finish = monotonic_ns()
+
+    def is_finished(self):
+        return self._clock_finish is not None
 
     @property
     def duration(self):

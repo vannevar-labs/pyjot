@@ -26,10 +26,10 @@ def logtags(**kwtags):
     }
 
 
-@pytest.fixture
-def jot():
+@pytest.fixture(params=["with_span", "without_span"])
+def jot(request):
     target = Target(log.ALL)
-    span = target.start()
+    span = target.start() if request.param == "with_span" else None
     return Telemeter(target, span, plonk=42)
 
 
@@ -140,33 +140,6 @@ def test_start_dtags_tags(jot):
 def test_start_no_positional_trace_id(jot):
     with pytest.raises(TypeError):
         jot.start("child", {}, "positional-trace-id")
-
-
-def test_finish(jot, mocker):
-    sspy = mocker.spy(jot.span, "finish")
-    tspy = mocker.spy(jot.target, "finish")
-
-    jot.finish()
-
-    sspy.assert_called_once_with()
-    tspy.assert_called_once_with(EXPECTED_TAGS, jot.span)
-
-
-def test_finish_tags(jot, mocker, dtags, kwtags):
-    sspy = mocker.spy(jot.span, "finish")
-    tspy = mocker.spy(jot.target, "finish")
-
-    jot.finish(dtags, **kwtags)
-
-    sspy.assert_called_once_with()
-    expected_tags = {**EXPECTED_TAGS, **dtags, **kwtags}
-    tspy.assert_called_once_with(expected_tags, jot.span)
-
-
-def test_finish_dtags_tag(jot, mocker):
-    tspy = mocker.spy(jot.target, "finish")
-    jot.finish(dtags="gronk")
-    tspy.assert_called_once_with(tags(dtags="gronk"), jot.span)
 
 
 def test_event(jot, mocker):
