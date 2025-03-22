@@ -7,7 +7,7 @@ from . import log
 from .util import add_caller_tags
 
 
-class Telemeter:
+class Meter:
     """The instrumentation interface"""
 
     def __init__(self, target=None, span=None, /, **tags) -> None:
@@ -29,7 +29,7 @@ class Telemeter:
             trace_id = None
             parent_id = None
         span = self.target.start(trace_id=trace_id, parent_id=parent_id, name=name)
-        return Telemeter(self.target, span, **tags)
+        return Meter(self.target, span, **tags)
 
     def finish(self, /, **kwtags):
         if self.span is None:

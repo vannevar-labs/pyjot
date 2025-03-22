@@ -1,8 +1,8 @@
 from contextlib import contextmanager as _contextmanager
 
-from .base import Telemeter
+from .base import Meter
 
-active = Telemeter()
+active = Meter()
 
 
 def _swap_active(new_active):
