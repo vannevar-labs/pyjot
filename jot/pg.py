@@ -10,8 +10,7 @@ class JotCursor(cursor):
         self._jot_finish()
         if args is not None:
             dtags["args"] = ",".join(str(a) for a in args)
-        jot.start(name, dtags)
-        self.jot = jot.active
+        self.jot = jot.start(name, dtags)
         return dtags
 
     def _jot_finish(self):

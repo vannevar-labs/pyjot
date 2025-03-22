@@ -3,28 +3,21 @@ from contextlib import contextmanager as _contextmanager
 from .base import Telemeter
 
 active = Telemeter()
-stack = []
 
 
-def _push(telemeter):
+def _swap_active(new_active):
     global active
-    stack.append(active)
-    active = telemeter
-
-
-def _pop():
-    global active
-    active = stack.pop()
+    old_active = active
+    active = new_active
+    return old_active
 
 
 def start(*args, **kwargs):
-    child = active.start(*args, **kwargs)
-    _push(child)
+    return active.start(*args, **kwargs)
 
 
 def finish(*args, **kwargs):
-    active.finish(*args, **kwargs)
-    _pop()
+    return active.finish(*args, **kwargs)
 
 
 def event(*args, **kwargs):
@@ -58,8 +51,7 @@ def count(*args, **kwargs):
 @_contextmanager
 def span(name, dtags={}, /, *, trace_id=None, parent_id=None, **kwtags):
     child = active.start(name, dtags, trace_id=trace_id, parent_id=parent_id, **kwtags)
-    _push(child)
-
+    parent = _swap_active(child)
     try:
         yield child
     except Exception as exc:
@@ -67,4 +59,4 @@ def span(name, dtags={}, /, *, trace_id=None, parent_id=None, **kwtags):
         raise exc
     finally:
         child.finish()
-        _pop()
+        _swap_active(parent)
