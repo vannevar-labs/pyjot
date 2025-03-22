@@ -1,5 +1,6 @@
-import jot
 import pytest
+
+import jot
 from jot import log
 from jot.base import Target
 
@@ -47,7 +48,7 @@ def gen4(**kwargs):
 
 
 def test_gen1_no_args(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
 
     with jot.span("create", ctx=3):
         it = gen1()
@@ -73,7 +74,7 @@ def test_gen1_no_args(mocker):
 
 
 def test_gen1_tag(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
 
     with jot.span("create", ctx=3):
         it = gen1(dynamic=True)
@@ -90,7 +91,7 @@ def test_gen1_tag(mocker):
 
 
 def test_gen2_positional_no_tags(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     for i in gen2(54):
         jot.info("during", i=i)
 
@@ -103,7 +104,7 @@ def test_gen2_positional_no_tags(mocker):
 
 
 def test_gen2_keyword_no_tags(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     for i in gen2(arg=54):
         jot.info("during", i=i)
 
@@ -116,7 +117,7 @@ def test_gen2_keyword_no_tags(mocker):
 
 
 def test_gen2_positional_tag(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     for i in gen2(54, firth=44):
         jot.info("during", i=i)
 
@@ -129,7 +130,7 @@ def test_gen2_positional_tag(mocker):
 
 
 def test_gen2_keyword_tag(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     for i in gen2(arg=54, firth=44):
         jot.info("during", i=i)
 
@@ -142,7 +143,7 @@ def test_gen2_keyword_tag(mocker):
 
 
 def test_gen3_keyword_no_tags(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     for i in gen3(arg=54):
         jot.info("during", i=i)
 
@@ -155,7 +156,7 @@ def test_gen3_keyword_no_tags(mocker):
 
 
 def test_gen3_keyword_tag(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     for i in gen3(arg=54, firth=44):
         jot.info("during", i=i)
 
@@ -168,7 +169,7 @@ def test_gen3_keyword_tag(mocker):
 
 
 def test_gen4_keyword_no_tags(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     for i in gen4(nilt=54):
         jot.info("during", i=i)
 
@@ -181,7 +182,7 @@ def test_gen4_keyword_no_tags(mocker):
 
 
 def test_gen4_keyword_declared_tag(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     for i in gen4(nilt=54, thop=44):
         jot.info("during", i=i)
 

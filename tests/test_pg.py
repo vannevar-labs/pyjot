@@ -27,7 +27,7 @@ def init():
 
 @pytest.fixture
 def finish(mocker):
-    return mocker.spy(jot.active.target, "finish")
+    return mocker.spy(jot.active_meter.target, "finish")
 
 
 @pytest.fixture(scope="session")

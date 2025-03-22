@@ -17,7 +17,7 @@ def init():
     # We want to report that exception, *unless* it's a KeyboardInterrupt (ie, the user pressed ^C).
     def report_uncaught_exception(exc_type, exc, exc_traceback):
         if not issubclass(exc_type, KeyboardInterrupt):
-            _facade.active.error("Unhandled Exception", exc)
+            _facade.active_meter.error("Unhandled Exception", exc)
         old_hook(exc_type, exc, exc_traceback)
 
     # register the exception hook
