@@ -45,16 +45,16 @@ class SentryTarget(Target):
             sentry_span = self.spans[parent_id].start_child(
                 op=name,
                 description=name,
-                span_id=span.id_hex,
+                span_id=self.format_span_id(span.id),
                 same_process_as_parent=True,
             )
         else:
             sentry_span = sentry.start_transaction(
                 op=name,
                 name=name,
-                trace_id=span.trace_id_hex,
-                parent_span_id=span.parent_id_hex,
-                span_id=span.id_hex,
+                trace_id=self.format_trace_id(span.trace_id),
+                parent_span_id=self.format_span_id(span.parent_id),
+                span_id=self.format_span_id(span.id),
                 same_process_as_parent=False if parent_id is not None else None,
             )
         self.spans[span.id] = sentry_span
@@ -72,7 +72,7 @@ class SentryTarget(Target):
         sentry.capture_message(
             message,
             level=log.name(level),
-            contexts=_extract_contexts(span),
+            contexts=self._extract_contexts(span),
             tags=tags,
         )
 
@@ -80,16 +80,21 @@ class SentryTarget(Target):
         sentry.capture_exception(
             exception,
             level="error",
-            contexts=_extract_contexts(span),
+            contexts=self._extract_contexts(span),
             extras={"message": message},
             tags=tags,
         )
 
-
-def _extract_contexts(span=None):
-    if span is None:
-        return None
-    contexts = {"trace": {"trace_id": span.trace_id_hex, "span_id": span.id_hex, "op": span.name}}
-    if span.parent_id is not None:
-        contexts["trace"]["parent_span_id"] = span.parent_id_hex
-    return contexts
+    def _extract_contexts(self, span=None):
+        if span is None:
+            return None
+        contexts = {
+            "trace": {
+                "trace_id": self.format_trace_id(span.trace_id),
+                "span_id": self.format_span_id(span.id),
+                "op": span.name,
+            }
+        }
+        if span.parent_id is not None:
+            contexts["trace"]["parent_span_id"] = self.format_span_id(span.parent_id)
+        return contexts

@@ -109,7 +109,7 @@ def test_start_tags(jot, dtags, kwtags, assert_tags_are_correct):
 
 
 def test_start_trace_id(jot):
-    trace_id = Span.gen_trace_id()
+    trace_id = Target.generate_trace_id()
     child = jot.start("child", trace_id=trace_id)
     assert child.span.trace_id == trace_id
     assert child.span.parent_id is None
@@ -118,8 +118,8 @@ def test_start_trace_id(jot):
 
 
 def test_start_parent_id(jot):
-    trace_id = Span.gen_trace_id()
-    parent_id = Span.gen_span_id()
+    trace_id = Target.generate_trace_id()
+    parent_id = Target.generate_span_id()
     child = jot.start("child", trace_id=trace_id, parent_id=parent_id)
     assert child.span.trace_id == trace_id
     assert child.span.parent_id is parent_id

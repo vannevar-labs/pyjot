@@ -1,7 +1,7 @@
 import random
 from time import monotonic_ns, time_ns
 
-from jot.util import hex_encode as _hex_encode
+from jot.util import hex_encode_bytes as _hex_encode
 
 from . import log
 from .util import add_caller_tags
@@ -88,46 +88,19 @@ class Event:
 
 class Span:
     @classmethod
-    def _gen_id(cls, byte_count):
-        return bytes(random.getrandbits(8) for _ in range(byte_count))
-
-    @classmethod
-    def gen_trace_id(cls):
-        return cls._gen_id(16)
-
-    @classmethod
-    def gen_span_id(cls):
-        return cls._gen_id(8)
-
-    @classmethod
     def from_parent(cls, parent, name=None):
         trace_id = parent.trace_id if parent else None
         parent_id = parent.id if parent else None
         return cls(trace_id, parent_id, name=name)
 
     def __init__(self, trace_id=None, parent_id=None, id=None, name=None):
-        self.trace_id = trace_id if trace_id else self.gen_trace_id()
+        self.trace_id = trace_id if trace_id else Target.generate_trace_id()
         self.parent_id = parent_id
-        self.id = id if id else self.gen_span_id()
+        self.id = id if id else Target.generate_span_id()
         self.name = name
         self.events = []
         self.baggage = {}
         self.start()
-
-    #
-    # ids
-    #
-    @property
-    def trace_id_hex(self):
-        return _hex_encode(self.trace_id)
-
-    @property
-    def parent_id_hex(self):
-        return _hex_encode(self.parent_id)
-
-    @property
-    def id_hex(self):
-        return _hex_encode(self.id)
 
     #
     # timing
@@ -149,6 +122,10 @@ class Span:
     def duration(self, ns):
         self._clock_finish = self._clock_start + ns
 
+    @property
+    def finish_time(self):
+        return self.start_time + self.duration
+
     #
     # events
     #
@@ -159,13 +136,37 @@ class Span:
 class Target:
     """A target that ignores all telemetry"""
 
-    def __init__(self, level=log.DEFAULT):
-        self.level = level
+    @classmethod
+    def default(cls, level=None):
+        return cls(level=level)
+
+    @staticmethod
+    def generate_trace_id():
+        return bytes(random.getrandbits(8) for _ in range(16))
+
+    @staticmethod
+    def generate_span_id():
+        return bytes(random.getrandbits(8) for _ in range(8))
+
+    @staticmethod
+    def format_trace_id(id):
+        return _hex_encode(id)
+
+    @staticmethod
+    def format_span_id(id):
+        return _hex_encode(id)
+
+    def __init__(self, level=None):
+        self.level = level if level is not None else log.DEFAULT
 
     def accepts_log_level(self, level):
         return level <= self.level
 
     def start(self, trace_id=None, parent_id=None, id=None, name=None):
+        if trace_id is None:
+            trace_id = self.generate_trace_id()
+        if id is None:
+            id = self.generate_span_id()
         return Span(trace_id, parent_id, id, name)
 
     def finish(self, tags, span):
