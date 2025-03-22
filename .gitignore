@@ -21,6 +21,15 @@ lib/
 dist/
 build/
 
-# env
-.pg_logs
-.postgres/
+## Ignore all files in .run/
+.run/*
+
+# not the postgres config
+!.run/postgres/
+.run/postgres/*
+!.run/postgres/postgresql.conf
+
+# not the collector config
+!.run/collector/
+.run/collector/*
+!.run/collector/config.yaml

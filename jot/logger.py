@@ -93,7 +93,7 @@ class LoggerTarget(Target):
                 {
                     "trace_id": span.trace_id.hex(),
                     "parent_id": span.parent_id.hex(),
-                    "span_id": span.id_hex,
+                    "span_id": self.format_span_id(span.id),
                     "span_name": span.name,
                 }
             )

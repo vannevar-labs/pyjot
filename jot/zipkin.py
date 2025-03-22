@@ -1,13 +1,19 @@
 import traceback
 
 import requests
+
 from .base import Target
 
 
 class ZipkinTarget(Target):
     """A target that sends traces to a zipkin server"""
 
-    def __init__(self, url):
+    @classmethod
+    def default(cls, level=None):
+        return cls("http://localhost:9411/api/v2/spans", level=level)
+
+    def __init__(self, url, level=None):
+        super().__init__(level)
         self.url = url
         self.session = requests.Session()
 
@@ -23,9 +29,9 @@ class ZipkinTarget(Target):
 
     def finish(self, tags, span):
         obj = {
-            "traceId": span.trace_id_hex,
-            "parentId": span.parent_id_hex,
-            "id": span.id_hex,
+            "traceId": self.format_trace_id(span.trace_id),
+            "parentId": self.format_span_id(span.parent_id),
+            "id": self.format_span_id(span.id),
             "timestamp": span.start_time // 1000,
             "duration": span.duration // 1000,
         }
