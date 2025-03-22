@@ -5,7 +5,7 @@ from callee.numbers import Integer
 
 import jot
 from jot import log
-from jot.base import Span, Target, Telemeter
+from jot.base import Target, Telemeter
 
 
 def caller_tags(**kwtags):
@@ -13,7 +13,6 @@ def caller_tags(**kwtags):
     frame = frame.f_back
     return {
         **kwtags,
-        "ctx": 1,
         "file": __file__,
         "line": Integer(),
         "function": frame.f_code.co_name,
@@ -47,6 +46,16 @@ def init():
     jot.start("test", ctx=1)
 
 
+@pytest.fixture
+def root():
+    return jot.start("test", ctx=1)
+
+
+def test_rootless():
+    child = jot.start("child")
+    assert child.span.parent_id is None
+
+
 def test_active():
     assert isinstance(jot.active, Telemeter)
 
@@ -74,90 +83,33 @@ def test_init_dtag_tag():
 def test_start():
     jot.init(Target(), loozy=34)
     parent = jot.active
-    jot.start("child")
+    child = jot.start("child")
 
-    assert jot.active is not parent
-    assert isinstance(jot.active.span.trace_id, bytes)
-    assert isinstance(jot.active.span.id, bytes)
-    assert jot.active.span.name == "child"
+    assert jot.active is parent
+    assert child is not parent
+    assert child.span is not None
+    assert isinstance(child.span.trace_id, bytes)
+    assert child.span.parent_id is None
+    assert isinstance(child.span.id, bytes)
+    assert child.span.name == "child"
 
 
 def test_start_tags(dtags, kwtags, assert_child_tags_are_correct):
     jot.init(Target(), loozy=34)
-    parent = jot.active
-    jot.start("child", dtags, **kwtags)
-    assert_child_tags_are_correct(parent, jot.active)
+    child = jot.start("child", dtags, **kwtags)
+    assert_child_tags_are_correct(jot.active, child)
 
 
-def test_finish():
-    parent = jot.active
-    jot.start("child")
-    jot.finish()
-
-    assert jot.active is parent
+def test_finish(assert_forwards):
+    with pytest.raises(RuntimeError) as excinfo:
+        jot.finish()
+    assert str(excinfo.value) == "No active span to finish"
 
 
-def test_finish_forwards(assert_forwards):
-    jot.start("child")
-    assert_forwards("finish")
-
-
-def test_with():
-    parent = jot.active
-    with jot.span("child", lep=66) as child:
-        assert child is jot.active
-        assert child is not parent
-        assert child.span.parent_id == parent.span.id
-        assert child.tags["lep"] == 66
-    assert jot.active is parent
-
-
-def test_with_trace_id():
-    parent = jot.active
-    with jot.span("child", trace_id=51) as child:
-        assert child is jot.active
-        assert child is not parent
-        assert child.span.trace_id == 51
-        assert child.span.parent_id is None
-        assert isinstance(child.span.id, bytes)
-        assert child.span.name == "child"
-
-
-def test_with_parent_id():
-    with jot.span("child", trace_id=51, parent_id=66) as child:
-        assert child is jot.active
-        assert child.span.trace_id == 51
-        assert child.span.parent_id == 66
-        assert isinstance(child.span.id, bytes)
-        assert child.span.name == "child"
-
-
-def test_with_error(mocker):
-    spy = mocker.spy(jot.active.target, "error")
-
-    try:
-        with jot.span("child", nork=6):
-            1 / 0
-    except ZeroDivisionError:
-        pass
-
-    spy.assert_called_once()
-    assert spy.call_args.args[0] == "Error during child"
-    assert isinstance(spy.call_args.args[1], ZeroDivisionError)
-    assert spy.call_args.args[2]["nork"] == 6
-    assert isinstance(spy.call_args.args[3], Span)
-    assert spy.call_args.args[3].parent_id == jot.active.span.id
-
-
-def test_with_dtags_tag():
-    with jot.span("child", dtags="nork") as child:
-        assert child.tags["dtags"] == "nork"
-
-
-def test_with_no_positional_trace_id():
-    with pytest.raises(TypeError):
-        with jot.span("child", {}, "trace-id"):
-            pass
+def test_finish_rooted(assert_forwards):
+    child = jot.start("child")
+    jot.facade._swap_active(child)
+    assert_forwards("finish", {"plonk": 96}, bink=42)
 
 
 def test_event(assert_forwards):
@@ -193,14 +145,29 @@ def test_count(assert_forwards):
 
 def test_debug_caller(log_spy):
     jot.debug("message")
-    log_spy.assert_called_once_with(log.DEBUG, "message", caller_tags(), jot.active.span)
+    log_spy.assert_called_once_with(log.DEBUG, "message", caller_tags(), None)
 
 
 def test_info_caller(log_spy):
     jot.info("message")
-    log_spy.assert_called_once_with(log.INFO, "message", caller_tags(), jot.active.span)
+    log_spy.assert_called_once_with(log.INFO, "message", caller_tags(), None)
 
 
 def test_warning_caller(log_spy):
     jot.warning("message")
-    log_spy.assert_called_once_with(log.WARNING, "message", caller_tags(), jot.active.span)
+    log_spy.assert_called_once_with(log.WARNING, "message", caller_tags(), None)
+
+
+def test_debug_caller_rooted(root, log_spy):
+    root.debug("message")
+    log_spy.assert_called_once_with(log.DEBUG, "message", caller_tags(ctx=1), root.span)
+
+
+def test_info_caller_rooted(root, log_spy):
+    root.info("message")
+    log_spy.assert_called_once_with(log.INFO, "message", caller_tags(ctx=1), root.span)
+
+
+def test_warning_caller_rooted(root, log_spy):
+    root.warning("message")
+    log_spy.assert_called_once_with(log.WARNING, "message", caller_tags(ctx=1), root.span)
