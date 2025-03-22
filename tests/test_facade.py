@@ -68,9 +68,9 @@ def test_init():
     assert jot.active.span is None
 
 
-def test_init_tags(dtags, kwtags, assert_tags_are_correct):
+def test_init_tags(tags, assert_tags_are_correct):
     target = Target()
-    jot.init(target, dtags, **kwtags)
+    jot.init(target, **tags)
     assert_tags_are_correct(jot.active)
 
 
@@ -94,9 +94,9 @@ def test_start():
     assert child.span.name == "child"
 
 
-def test_start_tags(dtags, kwtags, assert_child_tags_are_correct):
+def test_start_tags(tags, assert_child_tags_are_correct):
     jot.init(Target(), loozy=34)
-    child = jot.start("child", dtags, **kwtags)
+    child = jot.start("child", **tags)
     assert_child_tags_are_correct(jot.active, child)
 
 
@@ -109,38 +109,38 @@ def test_finish(assert_forwards):
 def test_finish_rooted(assert_forwards):
     child = jot.start("child")
     jot.facade._swap_active(child)
-    assert_forwards("finish", {"plonk": 96}, bink=42)
+    assert_forwards("finish", bink=42)
 
 
 def test_event(assert_forwards):
-    assert_forwards("event", "name", {"plonk": 96}, bink=42)
+    assert_forwards("event", "name", bink=42)
 
 
 def test_debug(assert_forwards):
-    assert_forwards("debug", "debug message", {"plonk": 96}, bink=42)
+    assert_forwards("debug", "debug message", bink=42)
 
 
 def test_info(assert_forwards):
-    assert_forwards("info", "info message", {"plonk": 96}, bink=42)
+    assert_forwards("info", "info message", bink=42)
 
 
 def test_warning(assert_forwards):
-    assert_forwards("warning", "warning message", {"plonk": 96}, bink=42)
+    assert_forwards("warning", "warning message", bink=42)
 
 
 def test_error(assert_forwards):
     try:
         1 / 0
     except ZeroDivisionError as exc:
-        assert_forwards("error", "error message", exc, {"plonk": 96}, bink=42)
+        assert_forwards("error", "error message", exc, bink=42)
 
 
 def test_magnitude(assert_forwards):
-    assert_forwards("magnitude", "temperature", 99.0, {"plonk": 96}, bink=42)
+    assert_forwards("magnitude", "temperature", 99.0, bink=42)
 
 
 def test_count(assert_forwards):
-    assert_forwards("count", "requests", 99, {"plonk": 96}, bink=42)
+    assert_forwards("count", "requests", 99, bink=42)
 
 
 def test_debug_caller(log_spy):
