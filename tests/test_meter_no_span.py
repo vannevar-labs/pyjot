@@ -1,13 +1,13 @@
 import pytest
 
 from jot import log
-from jot.base import Target, Telemeter
+from jot.base import Target, Meter
 
 
 @pytest.fixture
 def jot():
     target = Target(log.ALL)
-    return Telemeter(target, None, plonk=42)
+    return Meter(target, None, plonk=42)
 
 
 def test_finish(jot, mocker):

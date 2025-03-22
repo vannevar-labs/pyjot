@@ -19,7 +19,7 @@ def __setattr__(name, value):
 
 
 def init(target, /, **tags):
-    facade.active = base.Telemeter(target, None, **tags)
+    facade.active = base.Meter(target, None, **tags)
     flush.init()
 
 

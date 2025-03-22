@@ -5,7 +5,7 @@ from callee.numbers import Integer
 
 import jot
 from jot import log
-from jot.base import Target, Telemeter
+from jot.base import Target, Meter
 
 
 def caller_tags(**kwtags):
@@ -57,7 +57,7 @@ def test_rootless():
 
 
 def test_active():
-    assert isinstance(jot.active, Telemeter)
+    assert isinstance(jot.active, Meter)
 
 
 def test_init():

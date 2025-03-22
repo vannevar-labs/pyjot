@@ -1,7 +1,7 @@
 import pytest
 
 from jot import log
-from jot.base import Target, Telemeter
+from jot.base import Target, Meter
 
 EXPECTED_TAGS = {"plonk": 42}
 
@@ -14,7 +14,7 @@ def tags(**kwtags):
 def jot():
     target = Target(log.ALL)
     span = target.start()
-    return Telemeter(target, span, plonk=42)
+    return Meter(target, span, plonk=42)
 
 
 def test_finish(jot, mocker):

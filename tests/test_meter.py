@@ -4,7 +4,7 @@ import pytest
 from callee.numbers import Integer
 
 from jot import log
-from jot.base import Span, Target, Telemeter
+from jot.base import Span, Target, Meter
 from jot.print import PrintTarget
 
 EXPECTED_TAGS = {"plonk": 42}
@@ -30,11 +30,11 @@ def logtags(**tags):
 def jot(request):
     target = Target(log.ALL)
     span = target.start() if request.param == "with_span" else None
-    return Telemeter(target, span, plonk=42)
+    return Meter(target, span, plonk=42)
 
 
 def test_default_constructor():
-    jot = Telemeter()
+    jot = Meter()
     assert isinstance(jot.target, Target)
     assert jot.span is None
     assert isinstance(jot.tags, dict)
@@ -42,7 +42,7 @@ def test_default_constructor():
 
 
 def test_default_constructor_tags(tags, assert_tags_are_correct):
-    jot = Telemeter(None, None, **tags)
+    jot = Meter(None, None, **tags)
     assert isinstance(jot.target, Target)
     assert jot.span is None
     assert_tags_are_correct(jot)
@@ -50,14 +50,14 @@ def test_default_constructor_tags(tags, assert_tags_are_correct):
 
 def test_target_constructor():
     target = PrintTarget()
-    jot = Telemeter(target)
+    jot = Meter(target)
     assert jot.target is target
     assert jot.span is None
 
 
 def test_target_constructor_tags(tags, assert_tags_are_correct):
     target = PrintTarget()
-    jot = Telemeter(target, None, **tags)
+    jot = Meter(target, None, **tags)
     assert jot.target is target
     assert jot.span is None
     assert_tags_are_correct(jot)
@@ -65,26 +65,26 @@ def test_target_constructor_tags(tags, assert_tags_are_correct):
 
 def test_span_constructor():
     span = Span(1, 2, 3)
-    jot = Telemeter(None, span)
+    jot = Meter(None, span)
     assert isinstance(jot.target, Target)
     assert jot.span is span
 
 
 def test_span_constructor_tags(tags, assert_tags_are_correct):
     span = Span(1, 2, 3)
-    jot = Telemeter(None, span, **tags)
+    jot = Meter(None, span, **tags)
     assert isinstance(jot.target, Target)
     assert jot.span is span
     assert_tags_are_correct(jot)
 
 
 def test_target_tag():
-    jot = Telemeter(target="plict")
+    jot = Meter(target="plict")
     assert jot.tags["target"] == "plict"
 
 
 def test_span_tag():
-    jot = Telemeter(span="plict")
+    jot = Meter(span="plict")
     assert jot.tags["span"] == "plict"
 
 
@@ -211,7 +211,7 @@ def test_warning_message_tag(jot, mocker):
 
 def test_ignored_debug(mocker):
     target = Target(log.NOTHING)
-    jot = Telemeter(target)
+    jot = Meter(target)
     spy = mocker.spy(jot.target, "log")
     jot.debug("test log message")
     spy.assert_not_called()
@@ -219,7 +219,7 @@ def test_ignored_debug(mocker):
 
 def test_ignored_info(mocker):
     target = Target(log.NOTHING)
-    jot = Telemeter(target)
+    jot = Meter(target)
     spy = mocker.spy(jot.target, "log")
     jot.info("test log message")
     spy.assert_not_called()
@@ -227,7 +227,7 @@ def test_ignored_info(mocker):
 
 def test_ignored_warning(mocker):
     target = Target(log.NOTHING)
-    jot = Telemeter(target)
+    jot = Meter(target)
     spy = mocker.spy(jot.target, "log")
     jot.warning("test log message")
     spy.assert_not_called()
