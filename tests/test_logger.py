@@ -51,15 +51,15 @@ def filename():
 
 @pytest.fixture
 def info_level():
-    old_level = jot.active.target.level
-    jot.active.target.level = jot.log.INFO
+    old_level = jot.active_meter.target.level
+    jot.active_meter.target.level = jot.log.INFO
     yield
-    jot.active.target.level = old_level
+    jot.active_meter.target.level = old_level
 
 
 @pytest.fixture
 def spy(mocker):
-    spy = mocker.spy(jot.active.target, "log")
+    spy = mocker.spy(jot.active_meter.target, "log")
     yield spy
     spy.reset_mock()
 
@@ -91,7 +91,7 @@ def test_jot_via_logger(mocker, py2jot, filename, spy, level_method_name):
         logger="py2jot",
         plonk="42",
     )
-    spy.assert_called_once_with(jot_level, log_message, expected_tags, jot.active.span)
+    spy.assert_called_once_with(jot_level, log_message, expected_tags, jot.active_meter.span)
 
 
 def test_target_accepts_level(mocker, py2jot, spy, info_level):

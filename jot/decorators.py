@@ -1,6 +1,6 @@
 import functools
-from inspect import Parameter, signature
 import warnings
+from inspect import Parameter, signature
 
 from . import facade as _facade
 
@@ -16,22 +16,22 @@ def generator(name, **static_tags):
                 tags[tag_name] = kwargs.pop(tag_name)
 
             # start a new span, which will be active while the generator is running
-            captured = _facade.active.start(name, **tags)
+            captured = _facade.active_meter.start(name, **tags)
 
             # run the generator
             # TODO: log errors raised within the generator
             it = func(*args, **kwargs)
             try:
                 while True:
-                    current = _facade.active
-                    _facade.active = captured
+                    current = _facade.active_meter
+                    _facade.active_meter = captured
                     val = next(it)
-                    _facade.active = current
+                    _facade.active_meter = current
                     yield val
             except StopIteration:
                 captured.finish()
             finally:
-                _facade.active = current
+                _facade.active_meter = current
 
         # the @tag decorator will add tag names to this whitelist
         wrapper._uses_whitelist = False
