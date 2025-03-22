@@ -1,8 +1,9 @@
 import pytest
+import sentry_sdk as sdk
 
 from jot import log
 from jot.sentry import SentryTarget
-import sentry_sdk as sdk
+from jot.util import hex_encode_bytes
 
 DSN = "http://241cc27aee334e039477db937c7adeae@test.example.com/1277190904802156"
 ENV_NAME = "jot-testing"
@@ -27,9 +28,9 @@ def test_start_root(target, mocker):
     assert mock.call_args.kwargs == {
         "op": "test-root",
         "name": "test-root",
-        "trace_id": span.trace_id_hex,
+        "trace_id": hex_encode_bytes(span.trace_id),
         "parent_span_id": None,
-        "span_id": span.id_hex,
+        "span_id": hex_encode_bytes(span.id),
         "same_process_as_parent": None,
     }
     assert target.spans[span.id] == mock.return_value
@@ -45,7 +46,7 @@ def test_start_child(target, mocker):
     assert mock.call_args.kwargs == {
         "op": "test-child",
         "description": "test-child",
-        "span_id": child.id_hex,
+        "span_id": target.format_span_id(child.id),
         "same_process_as_parent": True,
     }
     assert target.spans[child.id] == mock.return_value
@@ -83,7 +84,11 @@ def test_error(target, mocker):
     assert mock.call_args.kwargs == {
         "level": "error",
         "contexts": {
-            "trace": {"trace_id": span.trace_id_hex, "span_id": span.id_hex, "op": span.name}
+            "trace": {
+                "trace_id": hex_encode_bytes(span.trace_id),
+                "span_id": hex_encode_bytes(span.id),
+                "op": span.name,
+            }
         },
         "extras": {"message": "test message"},
         "tags": {"plonk": 55},

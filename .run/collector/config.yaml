@@ -1,0 +1,27 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  file:
+    path: ./.run/collector/telemetry.jsonl
+
+  # Data sources: traces, metrics, logs
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [debug, file]
+    metrics:
+      receivers: [otlp]
+      exporters: [debug, file]
+    logs:
+      receivers: [otlp]
+      exporters: [debug, file]

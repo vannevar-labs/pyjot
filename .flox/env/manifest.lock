@@ -3,6 +3,9 @@
   "manifest": {
     "version": 1,
     "install": {
+      "opentelemetry-collector": {
+        "pkg-path": "opentelemetry-collector"
+      },
       "postgresql": {
         "pkg-path": "postgresql"
       },
@@ -28,12 +31,131 @@
       "semver": {}
     },
     "services": {
+      "otelcol": {
+        "command": "otelcol --config=$FLOX_ENV_PROJECT/.run/collector/config.yaml"
+      },
       "pg": {
-        "command": "pg_ctl -D .postgres -l .pg_logs start"
+        "command": "postgres -D $FLOX_ENV_PROJECT/.run/postgres"
       }
     }
   },
   "packages": [
+    {
+      "attr_path": "opentelemetry-collector",
+      "broken": false,
+      "derivation": "/nix/store/5jl953npdy31frf2mqij00bh66va4zys-otelcol-0.121.0.drv",
+      "description": "OpenTelemetry Collector Official Releases",
+      "install_id": "opentelemetry-collector",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=b6eaf97c6960d97350c584de1b6dcff03c9daf42",
+      "name": "otelcol-0.121.0",
+      "pname": "opentelemetry-collector",
+      "rev": "b6eaf97c6960d97350c584de1b6dcff03c9daf42",
+      "rev_count": 769969,
+      "rev_date": "2025-03-18T09:06:34Z",
+      "scrape_date": "2025-03-20T01:09:47.702383Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.121.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/w7w2nv7rwmi2cl32kqb11qzpi19r8f4b-otelcol-0.121.0"
+      },
+      "system": "aarch64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "opentelemetry-collector",
+      "broken": false,
+      "derivation": "/nix/store/kbz1dj067n676qgadyjf2s2vy5crnz9v-otelcol-0.121.0.drv",
+      "description": "OpenTelemetry Collector Official Releases",
+      "install_id": "opentelemetry-collector",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=b6eaf97c6960d97350c584de1b6dcff03c9daf42",
+      "name": "otelcol-0.121.0",
+      "pname": "opentelemetry-collector",
+      "rev": "b6eaf97c6960d97350c584de1b6dcff03c9daf42",
+      "rev_count": 769969,
+      "rev_date": "2025-03-18T09:06:34Z",
+      "scrape_date": "2025-03-20T01:28:15.648955Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.121.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/sjx726441p46hhga44cgk5jacwyyg97y-otelcol-0.121.0"
+      },
+      "system": "aarch64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "opentelemetry-collector",
+      "broken": false,
+      "derivation": "/nix/store/7vlvnqr5kk7vjslbz0v1rrycddnxga2z-otelcol-0.121.0.drv",
+      "description": "OpenTelemetry Collector Official Releases",
+      "install_id": "opentelemetry-collector",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=b6eaf97c6960d97350c584de1b6dcff03c9daf42",
+      "name": "otelcol-0.121.0",
+      "pname": "opentelemetry-collector",
+      "rev": "b6eaf97c6960d97350c584de1b6dcff03c9daf42",
+      "rev_count": 769969,
+      "rev_date": "2025-03-18T09:06:34Z",
+      "scrape_date": "2025-03-20T01:44:41.644776Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.121.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/71hg7yixapv3a1gjyf4139xz9b5hyfkm-otelcol-0.121.0"
+      },
+      "system": "x86_64-darwin",
+      "group": "toplevel",
+      "priority": 5
+    },
+    {
+      "attr_path": "opentelemetry-collector",
+      "broken": false,
+      "derivation": "/nix/store/2q3hl2d70a4d6bdmvrn35zxq6bgbhfwg-otelcol-0.121.0.drv",
+      "description": "OpenTelemetry Collector Official Releases",
+      "install_id": "opentelemetry-collector",
+      "license": "Apache-2.0",
+      "locked_url": "https://github.com/flox/nixpkgs?rev=b6eaf97c6960d97350c584de1b6dcff03c9daf42",
+      "name": "otelcol-0.121.0",
+      "pname": "opentelemetry-collector",
+      "rev": "b6eaf97c6960d97350c584de1b6dcff03c9daf42",
+      "rev_count": 769969,
+      "rev_date": "2025-03-18T09:06:34Z",
+      "scrape_date": "2025-03-20T02:04:23.243513Z",
+      "stabilities": [
+        "unstable"
+      ],
+      "unfree": false,
+      "version": "0.121.0",
+      "outputs_to_install": [
+        "out"
+      ],
+      "outputs": {
+        "out": "/nix/store/7a5cbvfhvfk5v5rvmafhqc5fc658gz78-otelcol-0.121.0"
+      },
+      "system": "x86_64-linux",
+      "group": "toplevel",
+      "priority": 5
+    },
     {
       "attr_path": "postgresql",
       "broken": false,

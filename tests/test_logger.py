@@ -119,7 +119,7 @@ def test_log_via_jot(mocker, jot2py, span, level_name):
         **tags,
         "trace_id": span.trace_id.hex(),
         "parent_id": span.parent_id.hex(),
-        "span_id": span.id_hex,
+        "span_id": span.id.hex(),
         "span_name": span.name,
     }
     spy.assert_called_once_with(py_level, message, extra=expected_tags)
