@@ -10,16 +10,16 @@ from jot.print import PrintTarget
 EXPECTED_TAGS = {"plonk": 42}
 
 
-def tags(**kwtags):
-    return {**EXPECTED_TAGS, **kwtags}
+def tags(**tags):
+    return {**EXPECTED_TAGS, **tags}
 
 
-def logtags(**kwtags):
+def logtags(**tags):
     frame = inspect.currentframe()
     frame = frame.f_back
     return {
         **EXPECTED_TAGS,
-        **kwtags,
+        **tags,
         "file": __file__,
         "line": Integer(),
         "function": frame.f_code.co_name,
@@ -41,8 +41,8 @@ def test_default_constructor():
     assert len(jot.tags) == 0
 
 
-def test_default_constructor_tags(dtags, kwtags, assert_tags_are_correct):
-    jot = Telemeter(None, None, dtags, **kwtags)
+def test_default_constructor_tags(tags, assert_tags_are_correct):
+    jot = Telemeter(None, None, **tags)
     assert isinstance(jot.target, Target)
     assert jot.span is None
     assert_tags_are_correct(jot)
@@ -55,9 +55,9 @@ def test_target_constructor():
     assert jot.span is None
 
 
-def test_target_constructor_tags(dtags, kwtags, assert_tags_are_correct):
+def test_target_constructor_tags(tags, assert_tags_are_correct):
     target = PrintTarget()
-    jot = Telemeter(target, None, dtags, **kwtags)
+    jot = Telemeter(target, None, **tags)
     assert jot.target is target
     assert jot.span is None
     assert_tags_are_correct(jot)
@@ -70,9 +70,9 @@ def test_span_constructor():
     assert jot.span is span
 
 
-def test_span_constructor_tags(dtags, kwtags, assert_tags_are_correct):
+def test_span_constructor_tags(tags, assert_tags_are_correct):
     span = Span(1, 2, 3)
-    jot = Telemeter(None, span, dtags, **kwtags)
+    jot = Telemeter(None, span, **tags)
     assert isinstance(jot.target, Target)
     assert jot.span is span
     assert_tags_are_correct(jot)
@@ -88,11 +88,6 @@ def test_span_tag():
     assert jot.tags["span"] == "plict"
 
 
-def test_dtags_tag():
-    jot = Telemeter(dtags="plict")
-    assert jot.tags["dtags"] == "plict"
-
-
 def test_start(jot):
     child = jot.start("subtask")
     assert len(jot.tags) == 1
@@ -100,8 +95,8 @@ def test_start(jot):
     assert child.span is not jot.span
 
 
-def test_start_tags(jot, dtags, kwtags, assert_tags_are_correct):
-    child = jot.start("subtask", dtags, **kwtags)
+def test_start_tags(jot, tags, assert_tags_are_correct):
+    child = jot.start("subtask", **tags)
     assert len(jot.tags) == 1
     assert child.target is jot.target
     assert child.span is not jot.span
@@ -132,11 +127,6 @@ def test_start_name_tag(jot):
     assert child.tags["name"] == "floopy"
 
 
-def test_start_dtags_tags(jot):
-    child = jot.start("child", dtags="floopy")
-    assert child.tags["dtags"] == "floopy"
-
-
 def test_start_no_positional_trace_id(jot):
     with pytest.raises(TypeError):
         jot.start("child", {}, "positional-trace-id")
@@ -148,9 +138,9 @@ def test_event(jot, mocker):
     spy.assert_called_once_with("test-event", EXPECTED_TAGS, jot.span)
 
 
-def test_event_tags(jot, mocker, dtags, kwtags, child_tags):
+def test_event_tags(jot, mocker, tags, child_tags):
     spy = mocker.spy(jot.target, "event")
-    jot.event("test-event", dtags, **kwtags)
+    jot.event("test-event", **tags)
     spy.assert_called_once_with("test-event", child_tags, jot.span)
 
 
@@ -160,21 +150,15 @@ def test_event_name_tag(jot, mocker):
     tspy.assert_called_once_with("test-event", tags(name="gronk"), jot.span)
 
 
-def test_event_dtags_tag(jot, mocker):
-    tspy = mocker.spy(jot.target, "event")
-    jot.event("test-event", dtags="gronk")
-    tspy.assert_called_once_with("test-event", tags(dtags="gronk"), jot.span)
-
-
 def test_debug(jot, mocker):
     spy = mocker.spy(jot.target, "log")
     jot.debug("test log message")
     spy.assert_called_once_with(log.DEBUG, "test log message", logtags(), jot.span)
 
 
-def test_debug_tags(jot, mocker, dtags, kwtags, child_tags):
+def test_debug_tags(jot, mocker, tags, child_tags):
     spy = mocker.spy(jot.target, "log")
-    jot.debug("test log message", dtags, **kwtags)
+    jot.debug("test log message", **tags)
     expected_tags = {**child_tags, **logtags()}
     spy.assert_called_once_with(log.DEBUG, "test log message", expected_tags, jot.span)
 
@@ -185,21 +169,15 @@ def test_debug_message_tag(jot, mocker):
     tspy.assert_called_once_with(log.DEBUG, "test log message", logtags(message="gronk"), jot.span)
 
 
-def test_debug_dtags_tag(jot, mocker):
-    tspy = mocker.spy(jot.target, "log")
-    jot.debug("test log message", dtags="gronk")
-    tspy.assert_called_once_with(log.DEBUG, "test log message", logtags(dtags="gronk"), jot.span)
-
-
 def test_info(jot, mocker):
     spy = mocker.spy(jot.target, "log")
     jot.info("test log message")
     spy.assert_called_once_with(log.INFO, "test log message", logtags(), jot.span)
 
 
-def test_info_tags(jot, mocker, dtags, kwtags, child_tags):
+def test_info_tags(jot, mocker, tags, child_tags):
     spy = mocker.spy(jot.target, "log")
-    jot.info("test log message", dtags, **kwtags)
+    jot.info("test log message", **tags)
     expected_tags = {**child_tags, **logtags()}
     spy.assert_called_once_with(log.INFO, "test log message", expected_tags, jot.span)
 
@@ -210,21 +188,15 @@ def test_info_message_tag(jot, mocker):
     tspy.assert_called_once_with(log.INFO, "test log message", logtags(message="gronk"), jot.span)
 
 
-def test_info_dtags_tag(jot, mocker):
-    tspy = mocker.spy(jot.target, "log")
-    jot.info("test log message", dtags="gronk")
-    tspy.assert_called_once_with(log.INFO, "test log message", logtags(dtags="gronk"), jot.span)
-
-
 def test_warning(jot, mocker):
     spy = mocker.spy(jot.target, "log")
     jot.warning("test log message")
     spy.assert_called_once_with(log.WARNING, "test log message", logtags(), jot.span)
 
 
-def test_warning_tags(jot, mocker, dtags, kwtags, child_tags):
+def test_warning_tags(jot, mocker, tags, child_tags):
     spy = mocker.spy(jot.target, "log")
-    jot.warning("test log message", dtags, **kwtags)
+    jot.warning("test log message", **tags)
     expected_tags = {**child_tags, **logtags()}
     spy.assert_called_once_with(log.WARNING, "test log message", expected_tags, jot.span)
 
@@ -235,12 +207,6 @@ def test_warning_message_tag(jot, mocker):
     tspy.assert_called_once_with(
         log.WARNING, "test log message", logtags(message="gronk"), jot.span
     )
-
-
-def test_warning_dtags_tag(jot, mocker):
-    tspy = mocker.spy(jot.target, "log")
-    jot.warning("test log message", dtags="gronk")
-    tspy.assert_called_once_with(log.WARNING, "test log message", logtags(dtags="gronk"), jot.span)
 
 
 def test_ignored_debug(mocker):
@@ -276,12 +242,12 @@ def test_error(jot, mocker):
         spy.assert_called_once_with("caught test error", e, EXPECTED_TAGS, jot.span)
 
 
-def test_error_tags(jot, mocker, dtags, kwtags, child_tags):
+def test_error_tags(jot, mocker, tags, child_tags):
     spy = mocker.spy(jot.target, "error")
     try:
         4 / 0
     except ZeroDivisionError as e:
-        jot.error("caught test error", e, dtags, **kwtags)
+        jot.error("caught test error", e, **tags)
         spy.assert_called_once_with("caught test error", e, child_tags, jot.span)
 
 
@@ -305,25 +271,15 @@ def test_error_exception_tag(jot, mocker):
         spy.assert_called_once_with("caught test error", e, expected_tags, jot.span)
 
 
-def test_error_dtags_tag(jot, mocker):
-    spy = mocker.spy(jot.target, "error")
-    try:
-        4 / 0
-    except ZeroDivisionError as e:
-        jot.error("caught test error", e, dtags="zork")
-        expected_tags = {**EXPECTED_TAGS, "dtags": "zork"}
-        spy.assert_called_once_with("caught test error", e, expected_tags, jot.span)
-
-
 def test_magnitude(jot, mocker):
     spy = mocker.spy(jot.target, "magnitude")
     jot.magnitude("zishy", 105)
     spy.assert_called_once_with("zishy", 105, EXPECTED_TAGS, jot.span)
 
 
-def test_magnitude_tags(jot, mocker, dtags, kwtags, child_tags):
+def test_magnitude_tags(jot, mocker, tags, child_tags):
     spy = mocker.spy(jot.target, "magnitude")
-    jot.magnitude("zishy", 105, dtags, **kwtags)
+    jot.magnitude("zishy", 105, **tags)
     spy.assert_called_once_with("zishy", 105, child_tags, jot.span)
 
 
@@ -339,21 +295,15 @@ def test_magnitude_value_tag(jot, mocker):
     spy.assert_called_once_with("zishy", 105, tags(value="worg"), jot.span)
 
 
-def test_magnitude_dtags_tag(jot, mocker):
-    spy = mocker.spy(jot.target, "magnitude")
-    jot.magnitude("zishy", 105, dtags="worg")
-    spy.assert_called_once_with("zishy", 105, tags(dtags="worg"), jot.span)
-
-
 def test_count(jot, mocker):
     spy = mocker.spy(jot.target, "count")
     jot.count("zishy", 105)
     spy.assert_called_once_with("zishy", 105, EXPECTED_TAGS, jot.span)
 
 
-def test_count_tags(jot, mocker, dtags, kwtags, child_tags):
+def test_count_tags(jot, mocker, tags, child_tags):
     spy = mocker.spy(jot.target, "count")
-    jot.count("zishy", 105, dtags, **kwtags)
+    jot.count("zishy", 105, **tags)
     spy.assert_called_once_with("zishy", 105, child_tags, jot.span)
 
 
@@ -367,9 +317,3 @@ def test_count_value_tag(jot, mocker):
     spy = mocker.spy(jot.target, "count")
     jot.count("zishy", 105, value="worg")
     spy.assert_called_once_with("zishy", 105, tags(value="worg"), jot.span)
-
-
-def test_count_dtags_tag(jot, mocker):
-    spy = mocker.spy(jot.target, "count")
-    jot.count("zishy", 105, dtags="worg")
-    spy.assert_called_once_with("zishy", 105, tags(dtags="worg"), jot.span)

@@ -6,12 +6,12 @@ import jot
 
 
 class JotCursor(cursor):
-    def _jot_start(self, name, args, **dtags):
+    def _jot_start(self, name, args, **tags):
         self._jot_finish()
         if args is not None:
-            dtags["args"] = ",".join(str(a) for a in args)
-        self.jot = jot.start(name, dtags)
-        return dtags
+            tags["args"] = ",".join(str(a) for a in args)
+        self.jot = jot.start(name, **tags)
+        return tags
 
     def _jot_finish(self):
         if hasattr(self, "jot"):
@@ -25,13 +25,13 @@ class JotCursor(cursor):
             self._jot_finish()
 
     def execute(self, sql, args=None):
-        dtags = self._jot_start("query", args, sql=sql)
+        tags = self._jot_start("query", args, sql=sql)
 
         try:
             cursor.execute(self, sql, args)
-            self.jot.event("query complete", dtags)
+            self.jot.event("query complete", **tags)
         except Exception as exc:
-            self.jot.error("Query Error", exc, dtags)
+            self.jot.error("Query Error", exc, **tags)
             raise
 
     def executemany(self, sql, vars_list):

@@ -42,14 +42,14 @@ def test_double_finish(jot, mocker):
     tspy.assert_called_once_with(EXPECTED_TAGS, jot.span)
 
 
-def test_finish_tags(jot, mocker, dtags, kwtags):
+def test_finish_tags(jot, mocker, tags):
     sspy = mocker.spy(jot.span, "finish")
     tspy = mocker.spy(jot.target, "finish")
 
-    jot.finish(dtags, **kwtags)
+    jot.finish(**tags)
 
     sspy.assert_called_once_with()
-    expected_tags = {**EXPECTED_TAGS, **dtags, **kwtags}
+    expected_tags = {**EXPECTED_TAGS, **tags}
     tspy.assert_called_once_with(expected_tags, jot.span)
 
 
