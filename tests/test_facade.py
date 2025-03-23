@@ -53,10 +53,16 @@ def root():
 
 def test_rootless():
     child = jot.start("child")
+    assert child is not None
+    assert child.active_span is not None
     assert child.active_span.parent_id is None
 
 
-def test_active_meter():
+def test_jot_active_meter():
+    assert not hasattr(jot, "active_meter")
+
+
+def test_facade_active_meter():
     assert isinstance(facade.active_meter, Meter)
 
 
@@ -86,6 +92,7 @@ def test_start():
     child = jot.start("child")
 
     assert facade.active_meter is parent
+    assert child is not None
     assert child is not parent
     assert child.active_span is not None
     assert isinstance(child.active_span.trace_id, bytes)

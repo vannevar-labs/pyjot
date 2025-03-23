@@ -128,6 +128,9 @@ class Span:
         self.name = name
         self.events = []
         self.baggage = {}
+        self.start_time = None
+        self._clock_start = None
+        self._clock_finish = None
 
     #
     # timing
