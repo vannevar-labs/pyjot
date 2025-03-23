@@ -1,7 +1,7 @@
 import logging
 
 import jot
-from jot import log
+from jot import facade, log
 from jot.base import Target
 
 PY2JOT_MAP = {
@@ -76,10 +76,9 @@ class JotLoggingHandler(logging.Handler):
                 continue
             tags[attr] = str(getattr(record, attr))
 
-        if jot.active_meter.target.accepts_log_level(level):
-            jot.active_meter.target.log(
-                level, record.getMessage(), tags, jot.active_meter.active_span
-            )
+        target = facade.active_meter.target
+        if target.accepts_log_level(level):
+            target.log(level, record.getMessage(), tags, facade.active_meter.active_span)
 
 
 class LoggerTarget(Target):
