@@ -17,7 +17,7 @@ class Meter:
 
     """Tracing Methods"""
 
-    def start(self, name, /, *, trace_id=None, parent_id=None, **kwtags):
+    def span(self, name, /, *, trace_id=None, parent_id=None, **kwtags):
         tags = {**self.tags, **kwtags}
         if trace_id is not None:
             trace_id = trace_id
@@ -28,13 +28,24 @@ class Meter:
         else:
             trace_id = None
             parent_id = None
-        span = self.target.start(trace_id=trace_id, parent_id=parent_id, name=name)
+        span = self.target.span(trace_id=trace_id, parent_id=parent_id, name=name)
         return Meter(self.target, span, **tags)
+
+    def start(self, name=None, /, *, trace_id=None, parent_id=None, **kwtags):
+        if name is not None:
+            child = self.span(name, trace_id=trace_id, parent_id=parent_id, **kwtags)
+            child.start()
+            return child
+
+        if self.active_span is None:
+            raise RuntimeError("No active span to start")
+
+        self.active_span.start()
 
     def finish(self, /, **kwtags):
         if self.active_span is None:
             raise RuntimeError("No active span to finish")
-        if self.active_span.is_finished():
+        if self.active_span.is_finished:
             raise RuntimeError("Span is already finished")
 
         tags = {**self.tags, **kwtags}
@@ -83,6 +94,18 @@ class Meter:
         tags = {**self.tags, **kwtags}
         self.target.count(name, value, tags, self.active_span)
 
+    """Context manager support"""
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None:
+            message = f"Error during {self.active_span.name}" if self.active_span else "Error"
+            self.error(message, exc_value)
+        self.finish()
+
 
 class Event:
     def __init__(self, name, timestamp=None, tags={}):
@@ -105,7 +128,6 @@ class Span:
         self.name = name
         self.events = []
         self.baggage = {}
-        self.start()
 
     #
     # timing
@@ -118,6 +140,11 @@ class Span:
     def finish(self):
         self._clock_finish = monotonic_ns()
 
+    @property
+    def is_started(self):
+        return self._clock_start is not None
+
+    @property
     def is_finished(self):
         return self._clock_finish is not None
 
@@ -170,12 +197,17 @@ class Target:
     def accepts_log_level(self, level):
         return level <= self.level
 
-    def start(self, trace_id=None, parent_id=None, id=None, name=None):
+    def span(self, trace_id=None, parent_id=None, id=None, name=None):
         if trace_id is None:
             trace_id = self.generate_trace_id()
         if id is None:
             id = self.generate_span_id()
         return Span(trace_id, parent_id, id, name)
+
+    def start(self, trace_id=None, parent_id=None, id=None, name=None):
+        span = self.span(trace_id, parent_id, id, name)
+        span.start()
+        return span
 
     def finish(self, tags, span):
         pass

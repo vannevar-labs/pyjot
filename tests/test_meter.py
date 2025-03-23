@@ -129,7 +129,7 @@ def test_start_name_tag(jot):
 
 def test_start_no_positional_trace_id(jot):
     with pytest.raises(TypeError):
-        jot.start("child", {}, "positional-trace-id")
+        jot.start("child", "positional-trace-id")
 
 
 def test_event(jot, mocker):

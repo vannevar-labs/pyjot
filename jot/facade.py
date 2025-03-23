@@ -1,5 +1,3 @@
-from contextlib import contextmanager as _contextmanager
-
 from .base import Meter
 
 active_meter = Meter()
@@ -10,6 +8,10 @@ def _swap_active(new_active):
     old_active = active_meter
     active_meter = new_active
     return old_active
+
+
+def span(*args, **kwargs):
+    return active_meter.span(*args, **kwargs)
 
 
 def start(*args, **kwargs):
@@ -46,17 +48,3 @@ def magnitude(*args, **kwargs):
 
 def count(*args, **kwargs):
     return active_meter.count(*args, **kwargs)
-
-
-@_contextmanager
-def span(name, /, *, trace_id=None, parent_id=None, **kwtags):
-    child = active_meter.start(name, trace_id=trace_id, parent_id=parent_id, **kwtags)
-    parent = _swap_active(child)
-    try:
-        yield child
-    except Exception as exc:
-        child.error(f"Error during {name}", exc)
-        raise exc
-    finally:
-        child.finish()
-        _swap_active(parent)
