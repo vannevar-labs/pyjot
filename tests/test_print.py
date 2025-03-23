@@ -57,6 +57,7 @@ def test_start(target, span):
 
 
 def test_finish(target, span, tags):
+    span.start()
     span.duration = 432
     target.finish(tags, span)
     output = target._file.getvalue()
