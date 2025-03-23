@@ -13,7 +13,7 @@ def tags(**kwtags):
 @pytest.fixture
 def jot():
     target = Target(log.ALL)
-    span = target.start()
+    span = target.span()
     return Meter(target, span, plonk=42)
 
 
@@ -57,3 +57,15 @@ def test_finish_dtags_tag(jot, mocker):
     tspy = mocker.spy(jot.target, "finish")
     jot.finish(dtags="gronk")
     tspy.assert_called_once_with(tags(dtags="gronk"), jot.active_span)
+
+
+def test_meter_start(jot):
+    assert jot.active_span is not None
+    assert not jot.active_span.is_started
+    assert not jot.active_span.is_finished
+    jot.start()
+    assert jot.active_span.is_started
+    assert not jot.active_span.is_finished
+    jot.finish()
+    assert jot.active_span.is_started
+    assert jot.active_span.is_finished
