@@ -4,7 +4,7 @@ import pytest
 from callee.numbers import Integer
 
 import jot
-from jot import log
+from jot import facade, log
 from jot.base import Meter, Target
 
 
@@ -23,7 +23,7 @@ def caller_tags(**kwtags):
 def assert_forwards(mocker):
     def _assert_forwards(method_name, *args, **kwargs):
         # spy on the method
-        spy = mocker.spy(jot.active_meter, method_name)
+        spy = mocker.spy(facade.active_meter, method_name)
 
         # call the method
         func = getattr(jot, method_name)
@@ -37,7 +37,7 @@ def assert_forwards(mocker):
 
 @pytest.fixture
 def log_spy(mocker):
-    return mocker.spy(jot.active_meter.target, "log")
+    return mocker.spy(facade.active_meter.target, "log")
 
 
 @pytest.fixture(autouse=True)
@@ -57,35 +57,35 @@ def test_rootless():
 
 
 def test_active_meter():
-    assert isinstance(jot.active_meter, Meter)
+    assert isinstance(facade.active_meter, Meter)
 
 
 def test_init():
     target = Target()
     jot.init(target)
-    assert jot.active_meter.target is target
-    assert jot.active_meter.tags == {}
-    assert jot.active_meter.active_span is None
+    assert facade.active_meter.target is target
+    assert facade.active_meter.tags == {}
+    assert facade.active_meter.active_span is None
 
 
 def test_init_tags(tags, assert_tags_are_correct):
     target = Target()
     jot.init(target, **tags)
-    assert_tags_are_correct(jot.active_meter)
+    assert_tags_are_correct(facade.active_meter)
 
 
 def test_init_dtag_tag():
     target = Target()
     jot.init(target, dtags="lorf")
-    assert jot.active_meter.tags == {"dtags": "lorf"}
+    assert facade.active_meter.tags == {"dtags": "lorf"}
 
 
 def test_start():
     jot.init(Target(), loozy=34)
-    parent = jot.active_meter
+    parent = facade.active_meter
     child = jot.start("child")
 
-    assert jot.active_meter is parent
+    assert facade.active_meter is parent
     assert child is not parent
     assert child.active_span is not None
     assert isinstance(child.active_span.trace_id, bytes)
@@ -97,7 +97,7 @@ def test_start():
 def test_start_tags(tags, assert_child_tags_are_correct):
     jot.init(Target(), loozy=34)
     child = jot.start("child", **tags)
-    assert_child_tags_are_correct(jot.active_meter, child)
+    assert_child_tags_are_correct(facade.active_meter, child)
 
 
 def test_finish(assert_forwards):

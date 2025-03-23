@@ -5,7 +5,7 @@ from io import StringIO
 import pytest
 
 import jot
-from jot import log
+from jot import facade, log
 from jot.base import Target
 
 PG_CONNECTION_PARAMS = ["user", "password", "host", "port", "database"]
@@ -27,7 +27,7 @@ def init():
 
 @pytest.fixture
 def finish(mocker):
-    return mocker.spy(jot.active_meter.target, "finish")
+    return mocker.spy(facade.active_meter.target, "finish")
 
 
 @pytest.fixture(scope="session")
