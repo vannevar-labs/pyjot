@@ -40,8 +40,11 @@ def wrap_async(func, dynamic_tag_names, static_tags):
                 future = coro.send(None)
                 _facade._swap_active(parent)
                 while True:
-                    done, pending = await asyncio.wait([future])
-                    value = done.pop().result()
+                    if future is None:
+                        value = None
+                    else:
+                        done, pending = await asyncio.wait([future])
+                        value = done.pop().result()
 
                     _facade._swap_active(child)
                     future = coro.send(value)
