@@ -1,4 +1,4 @@
-from . import base, facade, flush, logger
+from . import base, decorators, facade, flush, logger
 
 # allow extensions to the jot namespace
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
@@ -20,6 +20,9 @@ error = facade.error
 magnitude = facade.magnitude
 count = facade.count
 span = facade.span
+
+# re-export decorator functions
+instrument = decorators.instrument
 
 # re-export logger functions
 handle_logs = logger.handle_logs
