@@ -40,9 +40,9 @@ dev = [
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
 testpaths = ["tests"]
-markers = ["rows"]
+markers = ["rows", "select", "reject"]
 filterwarnings = ["ignore::DeprecationWarning:"]
-
+asyncio_mode = "auto"
 
 [tool.hatch.build.targets.wheel]
 packages = ["jot"]
