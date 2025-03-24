@@ -101,8 +101,8 @@ class OTLPTarget(Target):
 
         log_record = LogRecord(
             timestamp=time_ns(),
-            trace_id=span.trace_id if span else None,
-            span_id=span.id if span else None,
+            trace_id=span.trace_id if span else 0,
+            span_id=span.id if span else 0,
             trace_flags=TraceFlags.get_default(),
             severity_text=log.name(level),
             severity_number=_severity_map.get(level),
