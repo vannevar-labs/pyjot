@@ -130,3 +130,10 @@ def test_log_bytes_tags(target):
     target.log(log.WARNING, "test-log-message", {"id": id})
     output = target._file.getvalue()
     assert output == f"[/1] id={hex_encode_bytes(id)} WARNING test-log-message\n"
+
+
+def test_int_span_id(target):
+    span = target.span(trace_id=12345, id=123, name="test-span")
+    target.log(log.WARNING, "test-log-message", {}, span)
+    output = target._file.getvalue()
+    assert output == "[123/1] WARNING test-log-message\n"

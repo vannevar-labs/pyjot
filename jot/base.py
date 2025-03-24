@@ -1,10 +1,6 @@
-import random
 from time import monotonic_ns, time_ns
 
-from jot.util import hex_encode_bytes as _hex_encode
-
-from . import log
-from .util import add_caller_tags
+from . import log, util
 
 
 class Meter:
@@ -61,19 +57,19 @@ class Meter:
     def debug(self, message, /, **kwtags):
         if self.target.accepts_log_level(log.DEBUG):
             tags = {**self.tags, **kwtags}
-            add_caller_tags(tags)
+            util.add_caller_tags(tags)
             self.target.log(log.DEBUG, message, tags, self.active_span)
 
     def info(self, message, /, **kwtags):
         if self.target.accepts_log_level(log.INFO):
             tags = {**self.tags, **kwtags}
-            add_caller_tags(tags)
+            util.add_caller_tags(tags)
             self.target.log(log.INFO, message, tags, self.active_span)
 
     def warning(self, message, /, **kwtags):
         if self.target.accepts_log_level(log.WARNING):
             tags = {**self.tags, **kwtags}
-            add_caller_tags(tags)
+            util.add_caller_tags(tags)
             self.target.log(log.WARNING, message, tags, self.active_span)
 
     """Error methods"""
@@ -122,9 +118,9 @@ class Span:
         return cls(trace_id, parent_id, name=name)
 
     def __init__(self, trace_id=None, parent_id=None, id=None, name=None):
-        self.trace_id = trace_id if trace_id else Target.generate_trace_id()
+        self.trace_id = trace_id if trace_id else util.generate_trace_id()
         self.parent_id = parent_id
-        self.id = id if id else Target.generate_span_id()
+        self.id = id if id else util.generate_span_id()
         self.name = name
         self.events = []
         self.baggage = {}
@@ -178,24 +174,20 @@ class Target:
     def default(cls, level=None):
         return cls(level=level)
 
-    @staticmethod
-    def generate_trace_id():
-        return bytes(random.getrandbits(8) for _ in range(16))
-
-    @staticmethod
-    def generate_span_id():
-        return bytes(random.getrandbits(8) for _ in range(8))
-
-    @staticmethod
-    def format_trace_id(id):
-        return _hex_encode(id)
-
-    @staticmethod
-    def format_span_id(id):
-        return _hex_encode(id)
-
     def __init__(self, level=None):
         self.level = level if level is not None else log.DEFAULT
+
+    def generate_trace_id(self):
+        return util.generate_trace_id()
+
+    def generate_span_id(self):
+        return util.generate_span_id()
+
+    def format_trace_id(self, trace_id):
+        return util.format_trace_id(trace_id)
+
+    def format_span_id(self, span_id):
+        return util.format_span_id(span_id)
 
     def accepts_log_level(self, level):
         return level <= self.level

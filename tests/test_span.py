@@ -1,4 +1,5 @@
-from jot.base import Span, Target
+from jot import util
+from jot.base import Span
 
 
 def test_default_constructor():
@@ -9,9 +10,9 @@ def test_default_constructor():
 
 
 def test_positional_constructor():
-    trace_id = Target.generate_trace_id()
-    parent_id = Target.generate_span_id()
-    id = Target.generate_span_id()
+    trace_id = util.generate_trace_id()
+    parent_id = util.generate_span_id()
+    id = util.generate_span_id()
     name = "the name of the span"
 
     span = Span(trace_id, parent_id, id, name)
@@ -22,9 +23,9 @@ def test_positional_constructor():
 
 
 def test_constructor_keywords():
-    trace_id = Target.generate_trace_id()
-    parent_id = Target.generate_span_id()
-    id = Target.generate_span_id()
+    trace_id = util.generate_trace_id()
+    parent_id = util.generate_span_id()
+    id = util.generate_span_id()
     name = "the name of the span"
 
     span = Span(trace_id=trace_id, parent_id=parent_id, id=id, name=name)
