@@ -10,6 +10,10 @@ def _swap_active(new_active):
     return old_active
 
 
+def generate_trace_id():
+    return active_meter.target.generate_trace_id()
+
+
 def span(*args, **kwargs):
     return active_meter.span(*args, **kwargs)
 

@@ -10,6 +10,7 @@ def init(target, /, **tags):
 
 
 # re-export facade functions
+generate_trace_id = facade.generate_trace_id
 start = facade.start
 finish = facade.finish
 event = facade.event

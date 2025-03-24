@@ -86,6 +86,14 @@ def test_init_dtag_tag():
     assert facade.active_meter.tags == {"dtags": "lorf"}
 
 
+def test_generate_trace_id():
+    target = Target()
+    jot.init(target)
+    trace_id = jot.generate_trace_id()
+    assert isinstance(trace_id, bytes)
+    assert len(trace_id) == 16
+
+
 def test_start():
     jot.init(Target(), loozy=34)
     parent = facade.active_meter
