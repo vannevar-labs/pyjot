@@ -1,11 +1,28 @@
 import codecs
 import inspect
 import os
+import random
 
 _from_hex = codecs.getdecoder("hex")
 _from_str = codecs.getencoder("ascii")
 _to_hex = codecs.getencoder("hex")
 _to_str = codecs.getdecoder("ascii")
+
+
+def generate_trace_id():
+    return bytes(random.getrandbits(8) for _ in range(16))
+
+
+def generate_span_id():
+    return bytes(random.getrandbits(8) for _ in range(8))
+
+
+def format_trace_id(id):
+    return hex_encode_bytes(id)
+
+
+def format_span_id(id):
+    return hex_encode_bytes(id)
 
 
 def hex_encode_bytes(id):

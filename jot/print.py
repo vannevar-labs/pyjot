@@ -18,6 +18,16 @@ class PrintTarget(Target):
         super().__init__(level)
         self._file = file
 
+    def format_trace_id(self, trace_id):
+        if not isinstance(trace_id, bytes):
+            return str(trace_id)
+        return super().format_trace_id(trace_id)
+
+    def format_span_id(self, span_id):
+        if not isinstance(span_id, bytes):
+            return str(span_id)
+        return super().format_span_id(span_id)
+
     def start(self, trace_id=None, parent_id=None, id=None, name=None):
         span = super().start(trace_id, parent_id, id, name)
         self._write(span, {}, "start", name)

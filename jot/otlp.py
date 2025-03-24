@@ -54,6 +54,10 @@ _severity_map = {
 
 class OTLPTarget(Target):
     @classmethod
+    def gen_trace_id(cls):
+        return _generator.generate_trace_id()
+
+    @classmethod
     def default(cls, level=log.DEFAULT):
         span_exporter = OTLPSpanExporter("http://localhost:4318/v1/traces")
         metric_exporter = OTLPMetricExporter("http://localhost:4318/v1/metrics")
@@ -74,20 +78,16 @@ class OTLPTarget(Target):
         self.scope = InstrumentationScope("unknown", version=None, schema_url=SCHEMA_URL)
         self.span_data = {}
 
-    @staticmethod
-    def generate_trace_id():  # type: ignore
+    def generate_trace_id(self):  # type: ignore
         return _generator.generate_trace_id()
 
-    @staticmethod
-    def generate_span_id():  # type: ignore
+    def generate_span_id(self):  # type: ignore
         return _generator.generate_span_id()
 
-    @staticmethod
-    def format_trace_id(trace_id):
+    def format_trace_id(self, trace_id):
         return format_trace_id(trace_id)
 
-    @staticmethod
-    def format_span_id(span_id):
+    def format_span_id(self, span_id):
         return format_span_id(span_id)
 
     def start(self, trace_id=None, parent_id=None, id=None, name=None):

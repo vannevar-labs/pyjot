@@ -1,4 +1,5 @@
 import pytest
+
 from jot import log
 from jot.base import Target
 from jot.fanout import FanOutTarget
@@ -117,3 +118,67 @@ def test_log_warning(fan, mocker):
     assert one.call_args.args[1] == "a log message"
     assert one.call_args.args[TAGS_INDEX] is not tags
     assert one.call_args.args[TAGS_INDEX]["flooge"] == 91
+
+
+def test_generate_trace_id():
+    fan = FanOutTarget(IntTarget(), Target())
+    fan_id = fan.generate_trace_id()
+    assert fan_id == 1
+
+
+def test_generate_span_id():
+    fan = FanOutTarget(IntTarget(), Target())
+    span_id = fan.generate_span_id()
+    assert span_id == 2
+
+
+def test_format_trace_id():
+    fan = FanOutTarget(IntTarget(), Target())
+    formatted = fan.format_trace_id(1)
+    assert formatted == "1"
+
+
+def test_format_span_id():
+    fan = FanOutTarget(IntTarget(), Target())
+    formatted = fan.format_span_id(2)
+    assert formatted == "2"
+
+
+def test_generate_trace_id_default():
+    fan = FanOutTarget()
+    fan_id = fan.generate_trace_id()
+    assert fan_id is not None
+
+
+def test_generate_span_id_default():
+    fan = FanOutTarget()
+    span_id = fan.generate_span_id()
+    assert span_id is not None
+
+
+def test_format_trace_id_default():
+    fan = FanOutTarget()
+    id = fan.generate_trace_id()
+    formatted = fan.format_trace_id(id)
+    assert isinstance(formatted, str)
+
+
+def test_format_span_id_default():
+    fan = FanOutTarget()
+    id = fan.generate_span_id()
+    formatted = fan.format_span_id(id)
+    assert isinstance(formatted, str)
+
+
+class IntTarget:
+    def generate_trace_id(self):
+        return 1
+
+    def generate_span_id(self):
+        return 2
+
+    def format_trace_id(self, trace_id):
+        return str(trace_id)
+
+    def format_span_id(self, span_id):
+        return str(span_id)
