@@ -5,6 +5,7 @@ import pytest
 from jot import log
 from jot.base import Span
 from jot.print import PrintTarget
+from jot.util import hex_encode_bytes
 
 
 @pytest.fixture
@@ -13,15 +14,23 @@ def target():
     return PrintTarget(log.WARNING, file)
 
 
+@pytest.fixture(params=[True, False], ids=["with_span", "without_span"])
+def span(request):
+    if request.param:
+        span = Span(
+            trace_id=b"\x12!]'E{2\xc9\xf5\x1b\x07\xb2\xb7H\xe7l",
+            parent_id=b"rhX=\xb9\x96IG",
+            id=b"\xe2\xd8\xcc\x0b[\xef\\\x8b",
+            name="test-span",
+        )
+        return span
+
+
 @pytest.fixture
-def span():
-    span = Span(
-        trace_id=b"\x12!]'E{2\xc9\xf5\x1b\x07\xb2\xb7H\xe7l",
-        parent_id=b"rhX=\xb9\x96IG",
-        id=b"\xe2\xd8\xcc\x0b[\xef\\\x8b",
-        name="test-span",
-    )
-    return span
+def span_id(span):
+    if span:
+        return hex_encode_bytes(span.id)
+    return ""
 
 
 @pytest.fixture
@@ -50,39 +59,53 @@ def test_accepts_log_level(target):
     assert not target.accepts_log_level(log.ALL)
 
 
-def test_start(target, span):
-    target.start(span.trace_id, span.parent_id, span.id, span.name)
+def test_start_root(target):
+    span_id = target.generate_span_id()
+    target.start(id=span_id, name="test-span")
     output = target._file.getvalue()
-    assert output == "[e2d8cc0b5bef5c8b/1] start test-span\n"
+    assert output == f"[{hex_encode_bytes(span_id)}/1] start test-span\n"
 
 
-def test_finish(target, span, tags):
+def test_start_child(target):
+    trace_id = target.generate_trace_id()
+    parent_id = target.generate_span_id()
+    span_id = target.generate_span_id()
+    target.start(trace_id, parent_id, span_id, "test-span")
+    output = target._file.getvalue()
+
+    expected = f"[{hex_encode_bytes(span_id)}/1] start test-span\n"
+    assert output == expected
+
+
+def test_finish(target, span, span_id, tags):
+    if span is None:
+        return
     span.start()
     span.duration = 432
     target.finish(tags, span)
     output = target._file.getvalue()
-    assert output == "[e2d8cc0b5bef5c8b/1] plonk=lorp wiff=nonk duration=432 finish test-span\n"
+    assert output == f"[{span_id}/1] plonk=lorp wiff=nonk duration=432 finish test-span\n"
 
 
-def test_event(target, span, tags):
+def test_event(target, span, span_id, tags):
     target.event("test-event", tags, span)
     output = target._file.getvalue()
-    assert output == "[e2d8cc0b5bef5c8b/1] plonk=lorp wiff=nonk test-event\n"
+    assert output == f"[{span_id}/1] plonk=lorp wiff=nonk test-event\n"
 
 
-def test_log(target, span, tags):
+def test_log(target, span, span_id, tags):
     target.log(log.WARNING, "test-log-message", tags, span)
     output = target._file.getvalue()
-    assert output == "[e2d8cc0b5bef5c8b/1] plonk=lorp wiff=nonk WARNING test-log-message\n"
+    assert output == f"[{span_id}/1] plonk=lorp wiff=nonk WARNING test-log-message\n"
 
 
-def test_error(target, span, tags):
+def test_error(target, span, span_id, tags):
     try:
         return 1 / 0
     except ZeroDivisionError as err:
         target.error("got-error", err, tags, span)
     output = target._file.getvalue()
-    assert output.startswith("[e2d8cc0b5bef5c8b/1] plonk=lorp wiff=nonk Error: got-error\n")
+    assert output.startswith(f"[{span_id}/1] plonk=lorp wiff=nonk Error: got-error\n")
     assert "Traceback (most recent call last):" in output
     assert "ZeroDivisionError: division by zero" in output
     assert "test_print.py" in output
@@ -90,13 +113,20 @@ def test_error(target, span, tags):
     assert "1 / 0" in output
 
 
-def test_magnitude(target, span, tags):
+def test_magnitude(target, span, span_id, tags):
     target.magnitude("test-magnitude", 32, tags, span)
     output = target._file.getvalue()
-    assert output == "[e2d8cc0b5bef5c8b/1] plonk=lorp wiff=nonk test-magnitude=32\n"
+    assert output == f"[{span_id}/1] plonk=lorp wiff=nonk test-magnitude=32\n"
 
 
-def test_count(target, span, tags):
+def test_count(target, span, span_id, tags):
     target.count("test-count", 25, tags, span)
     output = target._file.getvalue()
-    assert output == "[e2d8cc0b5bef5c8b/1] plonk=lorp wiff=nonk test-count=25\n"
+    assert output == f"[{span_id}/1] plonk=lorp wiff=nonk test-count=25\n"
+
+
+def test_log_bytes_tags(target):
+    id = target.generate_span_id()
+    target.log(log.WARNING, "test-log-message", {"id": id})
+    output = target._file.getvalue()
+    assert output == f"[/1] id={hex_encode_bytes(id)} WARNING test-log-message\n"
