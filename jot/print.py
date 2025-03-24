@@ -4,6 +4,7 @@ import traceback
 
 from . import log
 from .base import Target
+from .util import hex_encode_bytes
 
 
 def _now():
@@ -50,6 +51,8 @@ class PrintTarget(Target):
         chunks = [f"[{span_id}/{mns}]"]
         if isinstance(tags, dict):
             for k, v in tags.items():
+                if isinstance(v, bytes):
+                    v = hex_encode_bytes(v)
                 chunks.append(f"{k}={v}")
         else:
             chunks.append(tags)

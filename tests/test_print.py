@@ -123,3 +123,10 @@ def test_count(target, span, span_id, tags):
     target.count("test-count", 25, tags, span)
     output = target._file.getvalue()
     assert output == f"[{span_id}/1] plonk=lorp wiff=nonk test-count=25\n"
+
+
+def test_log_bytes_tags(target):
+    id = target.generate_span_id()
+    target.log(log.WARNING, "test-log-message", {"id": id})
+    output = target._file.getvalue()
+    assert output == f"[/1] id={hex_encode_bytes(id)} WARNING test-log-message\n"
