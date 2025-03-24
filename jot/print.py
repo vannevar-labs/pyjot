@@ -46,7 +46,8 @@ class PrintTarget(Target):
 
     def _write(self, span, tags=None, *more):
         mns = _now()
-        chunks = [f"[{self.format_span_id(span.id)}/{mns}]"]
+        span_id = self.format_span_id(span.id) if span else ""
+        chunks = [f"[{span_id}/{mns}]"]
         if isinstance(tags, dict):
             for k, v in tags.items():
                 chunks.append(f"{k}={v}")
