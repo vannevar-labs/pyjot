@@ -1,3 +1,4 @@
+import sys
 from copy import copy
 
 from .base import Target
@@ -12,7 +13,10 @@ def _forward(method):
         span = args[-1]
         for target in self.targets:
             tags = copy(args[-2])
-            method(target, *rest, tags, span)
+            try:
+                method(target, *rest, tags, span)
+            except Exception as e:
+                print(f"Error forwarding to {target}: {e}", file=sys.stderr)
 
     return wrapped
 
@@ -24,6 +28,9 @@ class FanOutTarget(Target):
     def default(cls, level=None):
         target = Target.default(level)
         return cls(target, level=level)
+
+    def __init__(self, *targets, level=None):
+        self.targets = targets
 
     def generate_trace_id(self):
         if not self.targets:
@@ -44,9 +51,6 @@ class FanOutTarget(Target):
         if not self.targets:
             return super().format_span_id(span_id)
         return self.targets[0].format_span_id(span_id)
-
-    def __init__(self, *targets, level=None):
-        self.targets = targets
 
     def accepts_log_level(self, level):
         return any(t.accepts_log_level(level) for t in self.targets)
