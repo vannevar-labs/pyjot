@@ -170,6 +170,59 @@ def test_format_span_id_default():
     assert isinstance(formatted, str)
 
 
+@pytest.fixture
+def broken(mocker):
+    broken = mocker.Mock()
+    broken.side_effect = Exception("broken")
+    for method_name in dir(Target):
+        if not method_name.startswith("_"):
+            method = getattr(broken, method_name)
+            method.side_effect = Exception("broken")
+
+    ok = mocker.MagicMock(spec=Target)
+
+    return FanOutTarget(broken, ok)
+
+
+@pytest.fixture
+def ok(broken):
+    return broken.targets[1]
+
+
+def test_traps_errors_finish(broken, ok):
+    span = ok.span()
+    broken.finish({}, span)
+    assert ok.finish.called
+
+
+def test_traps_errors_event(broken, ok):
+    broken.event("event", {})
+    assert ok.event.called
+
+
+def test_traps_errors_log(broken, ok):
+    broken.log(log.INFO, "message", {})
+    assert ok.log.called
+
+
+def test_traps_errors_error(broken, ok):
+    try:
+        4 / 0
+    except ZeroDivisionError as e:
+        broken.error("message", e, {})
+    assert ok.error.called
+
+
+def test_traps_errors_magnitude(broken, ok):
+    broken.magnitude("metric", 42, {})
+    assert ok.magnitude.called
+
+
+def test_traps_errors_count(broken, ok):
+    broken.count("metric", 42, {})
+    assert ok.count.called
+
+
 class IntTarget:
     def generate_trace_id(self):
         return 1
