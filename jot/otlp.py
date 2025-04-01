@@ -1,4 +1,5 @@
 from time import time_ns
+from traceback import format_exception
 
 from opentelemetry._logs.severity import SeverityNumber
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
@@ -22,6 +23,7 @@ from opentelemetry.sdk.resources import (
     Resource,
     get_aggregated_resources,
 )
+from opentelemetry.sdk.trace import Event as OTLPEvent
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.id_generator import RandomIdGenerator
 from opentelemetry.sdk.util.instrumentation import InstrumentationScope
@@ -78,6 +80,17 @@ class OTLPTarget(Target):
         self.scope = InstrumentationScope("unknown", version=None, schema_url=SCHEMA_URL)
         self.span_data = {}
 
+    def _get_span_data(self, span):
+        if span.id not in self.span_data:
+            self.span_data[span.id] = OtelSpanData()
+        return self.span_data[span.id]
+
+    def _pop_span_data(self, span):
+        span_data = self.span_data.pop(span.id, None)
+        if span_data is None:
+            span_data = OtelSpanData()
+        return span_data
+
     def generate_trace_id(self):  # type: ignore
         return _generator.generate_trace_id()
 
@@ -89,11 +102,6 @@ class OTLPTarget(Target):
 
     def format_span_id(self, span_id):
         return format_span_id(span_id)
-
-    def start(self, trace_id=None, parent_id=None, id=None, name=None):
-        span = super().start(trace_id, parent_id, id, name)
-        self.span_data[span.id] = OtelSpanData()
-        return span
 
     def log(self, level, message, tags, span=None):
         if self.log_exporter is None:
@@ -112,6 +120,15 @@ class OTLPTarget(Target):
         )
         log_data = LogData(log_record, self.scope)
         self.log_exporter.export([log_data])
+
+    def error(self, message, exception, tags, span=None):
+        attributes = {
+            "exception.type": type(exception).__name__,
+            "exception.message": str(exception),
+            "exception.stacktrace": "".join(format_exception(exception)),
+        }
+        self.event(message, attributes, span)
+        self._get_span_data(span).note_error(exception)
 
     def magnitude(self, name, value, tags, span=None):
         if self.metric_exporter is None:
@@ -172,11 +189,7 @@ class OTLPTarget(Target):
     def finish(self, tags, span):
         if self.span_exporter is None:
             return
-        span_data = self.span_data.pop(span.id, None)
-        if span_data is None:
-            print("span_data is None", flush=True)
-            return
-
+        span_data = self._pop_span_data(span)
         span_data.finish(tags)
         ot_span = span_data.create_readable_span(self.resource, span)
         self.span_exporter.export([ot_span])
@@ -184,13 +197,9 @@ class OTLPTarget(Target):
 
 class OtelSpanData:
     def __init__(self):
-        self.events = []
         self.attributes = {}
         self.kind = SpanKind.INTERNAL
         self.status = None
-
-    def add_event(self, event):
-        self.events.append(event)
 
     def note_error(self, error):
         self.status = Status(StatusCode.ERROR, str(error))
@@ -206,14 +215,14 @@ class OtelSpanData:
         parent = (
             SpanContext(span.trace_id, span.parent_id, is_remote=False) if span.parent_id else None
         )
-
+        events = [OTLPEvent(e.name, e.tags, e.timestamp) for e in span.events]
         return ReadableSpan(
             name=span.name,
             context=SpanContext(span.trace_id, span.id, is_remote=False),
             parent=parent,
             resource=resource,
             attributes=self.attributes,
-            events=self.events,
+            events=events,
             links=[],
             kind=self.kind,
             instrumentation_info=None,

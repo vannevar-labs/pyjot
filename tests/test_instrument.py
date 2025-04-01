@@ -97,8 +97,10 @@ async def test_async_call(func, args, kwargs, root_span, logspy):
     coro = func(*args, **kwargs)
 
     jot.info("suspended", ord=1)
-    await coro
+    result = await coro
     jot.info("suspended", ord=2)
+
+    assert result == "done"
 
     # all the suspended logs are done by the root span
     suspended = [c.args[3] for c in logspy.call_args_list if c.args[1] == "suspended"]
@@ -131,7 +133,7 @@ async def test_async_send(func, args, kwargs, root_span, logspy):
     finally:
         jot.info("suspended", ord=ord)
 
-    assert result is not None
+    assert result == "done"
 
     # all the suspended logs are done by the root span
     suspended = [c.args[3] for c in logspy.call_args_list if c.args[1] == "suspended"]

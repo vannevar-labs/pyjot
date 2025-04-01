@@ -1,5 +1,6 @@
 import pytest
 from opentelemetry._logs.severity import SeverityNumber
+from opentelemetry.trace import StatusCode
 
 from jot import log
 from jot.otlp import OTLPTarget
@@ -205,3 +206,39 @@ def test_count(target, tags, get_metric):
     assert metric.data.data_points[0].attributes == tags
     assert metric.data.data_points[0].start_time_unix_nano == span.start_time
     assert metric.data.data_points[0].time_unix_nano >= span.start_time
+
+
+def test_event(target, tags, get_span):
+    span = target.start()
+    target.event("test_event", tags, span)
+    target.finish({}, span)
+
+    assert target.span_exporter.export.called_once()
+    otspan = get_span()
+    assert otspan.events[0].name == "test_event"
+    assert otspan.events[0].attributes == tags
+    assert otspan.events[0].timestamp >= span.start_time
+
+
+def test_error(target, tags, get_span):
+    span = target.start()
+    try:
+        raise ValueError("test_error")
+    except ValueError as e:
+        target.error("test_error", e, tags, span)
+    target.finish({}, span)
+
+    assert target.span_exporter.export.called_once()
+    otspan = get_span()
+    assert otspan.status.status_code == StatusCode.ERROR
+    assert otspan.events[0].name == "test_error"
+    assert otspan.events[0].timestamp >= span.start_time
+    assert otspan.events[0].attributes["exception.type"] == "ValueError"
+    assert otspan.events[0].attributes["exception.message"] == "test_error"
+    assert otspan.events[0].attributes["exception.stacktrace"] is not None
+    assert (
+        otspan.events[0]
+        .attributes["exception.stacktrace"]
+        .startswith("Traceback (most recent call last):")
+    )
+    assert otspan.events[0].attributes["exception.stacktrace"].endswith("ValueError: test_error\n")
