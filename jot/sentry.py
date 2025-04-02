@@ -5,8 +5,8 @@ from sentry_sdk.integrations.modules import ModulesIntegration
 from sentry_sdk.integrations.stdlib import StdlibIntegration
 from sentry_sdk.integrations.threading import ThreadingIntegration
 
-from jot import flush, log
-from jot.base import Target
+from . import flush, log, util
+from .base import Target
 
 
 class SentryTarget(Target):
@@ -38,25 +38,26 @@ class SentryTarget(Target):
         super().__init__(level)
         self.spans = {}
 
-    def start(self, trace_id=None, parent_id=None, id=None, name=None):
-        span = super().start(trace_id, parent_id, id, name)
-
-        if parent_id is not None and parent_id in self.spans:
-            sentry_span = self.spans[parent_id].start_child(
-                op=name,
-                description=name,
-                span_id=self.format_span_id(span.id),
+    def start(self, tags, span):
+        if span.parent_id is not None and span.parent_id in self.spans:
+            sentry_span = self.spans[span.parent_id].start_child(
+                op=span.name,
+                description=span.name,
+                span_id=util.format_span_id(span.id),
                 same_process_as_parent=True,
             )
         else:
-            sentry_span = sentry.start_transaction(
-                op=name,
-                name=name,
-                trace_id=self.format_trace_id(span.trace_id),
-                parent_span_id=self.format_span_id(span.parent_id),
-                span_id=self.format_span_id(span.id),
-                same_process_as_parent=False if parent_id is not None else None,
-            )
+            options = {
+                "op": span.name,
+                "name": span.name,
+                "trace_id": util.format_trace_id(span.trace_id),
+                "span_id": util.format_span_id(span.id),
+            }
+            if span.parent_id is None:
+                options["same_process_as_parent"] = False
+            else:
+                options["parent_span_id"] = util.format_span_id(span.parent_id)
+            sentry_span = sentry.start_transaction(**options)
         self.spans[span.id] = sentry_span
 
         return span
@@ -90,11 +91,11 @@ class SentryTarget(Target):
             return None
         contexts = {
             "trace": {
-                "trace_id": self.format_trace_id(span.trace_id),
-                "span_id": self.format_span_id(span.id),
+                "trace_id": util.format_trace_id(span.trace_id),
+                "span_id": util.format_span_id(span.id),
                 "op": span.name,
             }
         }
         if span.parent_id is not None:
-            contexts["trace"]["parent_span_id"] = self.format_span_id(span.parent_id)
+            contexts["trace"]["parent_span_id"] = util.format_span_id(span.parent_id)
         return contexts

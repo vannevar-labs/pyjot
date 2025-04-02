@@ -2,7 +2,8 @@ import pytest
 from opentelemetry._logs.severity import SeverityNumber
 from opentelemetry.trace import StatusCode
 
-from jot import log
+from jot import log, util
+from jot.base import Span
 from jot.otlp import OTLPTarget
 
 
@@ -17,6 +18,13 @@ def target(mocker):
     le = mocker.MagicMock()
     me = mocker.MagicMock()
     return OTLPTarget(span_exporter=se, log_exporter=le, metric_exporter=me, level=log.ALL)
+
+
+@pytest.fixture
+def span():
+    span = Span(name="test_span")
+    span.start()
+    return span
 
 
 @pytest.fixture
@@ -48,27 +56,8 @@ def get_metric(target):
     return get_metric
 
 
-def test_trace_id():
-    target = OTLPTarget.default()
-    trace_id = target.generate_trace_id()
-    hex_trace_id = target.format_trace_id(trace_id)
-    assert isinstance(trace_id, int)
-    assert isinstance(hex_trace_id, str)
-    assert len(hex_trace_id) == 32
-
-
-def test_span_id():
-    target = OTLPTarget.default()
-    span_id = target.generate_span_id()
-    hex_span_id = target.format_span_id(span_id)
-    assert isinstance(span_id, int)
-    assert isinstance(hex_span_id, str)
-    assert len(hex_span_id) == 16
-
-
-def test_no_exporter():
+def test_no_exporter(span):
     target = OTLPTarget(span_exporter=None, log_exporter=None, metric_exporter=None, level=log.ALL)
-    span = target.start("test_span")
     target.event("test_event", {}, span)
     target.log(log.INFO, "test_log", {}, span)
     try:
@@ -81,10 +70,11 @@ def test_no_exporter():
     # no assertions, just ensure no exceptions are raised
 
 
-def test_finish_root(target, tags, get_span):
-    trace_id = target.generate_trace_id()
-    span_id = target.generate_span_id()
-    span = target.start(trace_id=trace_id, id=span_id, name="test_span")
+def test_finish_root(target, span, tags, get_span):
+    trace_id = util.generate_trace_id()
+    span_id = util.generate_span_id()
+    span = Span(trace_id=trace_id, id=span_id, name="test_span")
+    span.start()
     target.finish(tags, span)
 
     assert target.span_exporter.export.called_once()
@@ -96,11 +86,12 @@ def test_finish_root(target, tags, get_span):
         assert otspan.attributes[k] == v
 
 
-def test_finish_child(target, tags, get_span):
-    trace_id = target.generate_trace_id()
-    parent_id = target.generate_span_id()
-    span_id = target.generate_span_id()
-    span = target.start(trace_id=trace_id, parent_id=parent_id, id=span_id, name="test_span")
+def test_finish_child(target, span, tags, get_span):
+    trace_id = util.generate_trace_id()
+    parent_id = util.generate_span_id()
+    span_id = util.generate_span_id()
+    span = Span(trace_id=trace_id, parent_id=parent_id, id=span_id, name="test_span")
+    span.start()
     target.finish(tags, span)
 
     assert target.span_exporter.export.called_once()
@@ -114,8 +105,7 @@ def test_finish_child(target, tags, get_span):
         assert otspan.attributes[k] == v
 
 
-def test_log_debug(target, tags, get_log):
-    span = target.start("test_span")
+def test_log_debug(target, span, tags, get_log):
     target.log(log.DEBUG, "test_log", tags, span)
 
     assert target.log_exporter.export.called_once()
@@ -131,8 +121,7 @@ def test_log_debug(target, tags, get_log):
         assert log_record.attributes[k] == v
 
 
-def test_log_info(target, tags, get_log):
-    span = target.start("test_span")
+def test_log_info(target, span, tags, get_log):
     target.log(log.INFO, "test_log", tags, span)
 
     assert target.log_exporter.export.called_once()
@@ -148,8 +137,7 @@ def test_log_info(target, tags, get_log):
         assert log_record.attributes[k] == v
 
 
-def test_log_warning(target, tags, get_log):
-    span = target.start("test_span")
+def test_log_warning(target, span, tags, get_log):
     target.log(log.WARNING, "test_log", tags, span)
 
     assert target.log_exporter.export.called_once()
@@ -165,8 +153,7 @@ def test_log_warning(target, tags, get_log):
         assert log_record.attributes[k] == v
 
 
-def test_log_critical(target, tags, get_log):
-    span = target.start("test_span")
+def test_log_critical(target, span, tags, get_log):
     target.log(log.CRITICAL, "test_log", tags, span)
 
     assert target.log_exporter.export.called_once()
@@ -182,8 +169,7 @@ def test_log_critical(target, tags, get_log):
         assert log_record.attributes[k] == v
 
 
-def test_magnitude(target, tags, get_metric):
-    span = target.start("test_span")
+def test_magnitude(target, span, tags, get_metric):
     target.magnitude("test_magnitude", 1.0, tags, span)
 
     assert target.metric_exporter.export.called_once()
@@ -195,8 +181,7 @@ def test_magnitude(target, tags, get_metric):
     assert metric.data.data_points[0].time_unix_nano >= span.start_time
 
 
-def test_count(target, tags, get_metric):
-    span = target.start("test_span")
+def test_count(target, span, tags, get_metric):
     target.count("test_count", 24, tags, span)
 
     assert target.metric_exporter.export.called_once()
@@ -208,8 +193,7 @@ def test_count(target, tags, get_metric):
     assert metric.data.data_points[0].time_unix_nano >= span.start_time
 
 
-def test_event(target, tags, get_span):
-    span = target.start()
+def test_event(target, span, tags, get_span):
     target.event("test_event", tags, span)
     target.finish({}, span)
 
@@ -220,8 +204,8 @@ def test_event(target, tags, get_span):
     assert otspan.events[0].timestamp >= span.start_time
 
 
-def test_error(target, tags, get_span):
-    span = target.start()
+def test_error(target, span, tags, get_span):
+    print(span.trace_id)
     try:
         raise ValueError("test_error")
     except ValueError as e:

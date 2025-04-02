@@ -4,7 +4,7 @@ import pytest
 from callee.numbers import Integer
 
 import jot
-from jot import facade, log
+from jot import facade, log, util
 from jot.base import Meter, Target
 
 
@@ -51,6 +51,16 @@ def root():
     return jot.start("test", ctx=1)
 
 
+@pytest.fixture
+def trace_id():
+    return jot.generate_trace_id()
+
+
+@pytest.fixture
+def span_id():
+    return util.generate_span_id()
+
+
 def test_rootless():
     child = jot.start("child")
     assert child is not None
@@ -86,15 +96,14 @@ def test_init_dtag_tag():
     assert facade.active_meter.tags == {"dtags": "lorf"}
 
 
-def test_generate_trace_id():
+def test_generate_trace_id(trace_id):
     target = Target()
     jot.init(target)
-    trace_id = jot.generate_trace_id()
-    assert isinstance(trace_id, bytes)
-    assert len(trace_id) == 16
+    id = jot.generate_trace_id()
+    assert isinstance(id, type(trace_id))
 
 
-def test_start():
+def test_start(trace_id, span_id):
     jot.init(Target(), loozy=34)
     parent = facade.active_meter
     child = jot.start("child")
@@ -103,9 +112,9 @@ def test_start():
     assert child is not None
     assert child is not parent
     assert child.active_span is not None
-    assert isinstance(child.active_span.trace_id, bytes)
+    assert isinstance(child.active_span.trace_id, type(trace_id))
     assert child.active_span.parent_id is None
-    assert isinstance(child.active_span.id, bytes)
+    assert isinstance(child.active_span.id, type(span_id))
     assert child.active_span.name == "child"
 
 

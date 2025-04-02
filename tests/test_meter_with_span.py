@@ -1,7 +1,7 @@
 import pytest
 
 from jot import log
-from jot.base import Meter, Target
+from jot.base import Meter, Span, Target
 
 EXPECTED_TAGS = {"plonk": 42}
 
@@ -13,7 +13,7 @@ def tags(**kwtags):
 @pytest.fixture
 def jot():
     target = Target(log.ALL)
-    span = target.span()
+    span = Span()
     return Meter(target, span, plonk=42)
 
 

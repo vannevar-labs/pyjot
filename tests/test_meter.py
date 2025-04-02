@@ -3,8 +3,8 @@ import inspect
 import pytest
 from callee.numbers import Integer
 
-from jot import log
-from jot.base import Meter, Target
+from jot import log, util
+from jot.base import Meter, Span, Target
 
 EXPECTED_TAGS = {"plonk": 42}
 
@@ -32,7 +32,7 @@ def target():
 
 @pytest.fixture(params=["with_span", "without_span"])
 def jot(request, target):
-    span = target.start() if request.param == "with_span" else None
+    span = Span() if request.param == "with_span" else None
     return Meter(target, span, plonk=42)
 
 
@@ -52,21 +52,22 @@ def test_start_tags(jot, target, tags, assert_tags_are_correct):
 
 
 def test_start_trace_id(jot, target):
-    trace_id = target.generate_trace_id()
+    trace_id = util.generate_trace_id()
+    span_id = util.generate_span_id()
     child = jot.start("child", trace_id=trace_id)
     assert child.active_span.trace_id == trace_id
     assert child.active_span.parent_id is None
-    assert isinstance(child.active_span.id, bytes)
+    assert isinstance(child.active_span.id, type(span_id))
     assert child.active_span.name == "child"
 
 
 def test_start_parent_id(jot, target):
-    trace_id = target.generate_trace_id()
-    parent_id = target.generate_span_id()
+    trace_id = util.generate_trace_id()
+    parent_id = util.generate_span_id()
     child = jot.start("child", trace_id=trace_id, parent_id=parent_id)
     assert child.active_span.trace_id == trace_id
     assert child.active_span.parent_id is parent_id
-    assert isinstance(child.active_span.id, bytes)
+    assert isinstance(child.active_span.id, type(parent_id))
     assert child.active_span.name == "child"
 
 

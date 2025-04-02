@@ -2,10 +2,9 @@ from io import StringIO
 
 import pytest
 
-from jot import log
+from jot import log, util
 from jot.base import Span
 from jot.print import PrintTarget
-from jot.util import hex_encode_bytes
 
 
 @pytest.fixture
@@ -18,9 +17,9 @@ def target():
 def span(request):
     if request.param:
         span = Span(
-            trace_id=b"\x12!]'E{2\xc9\xf5\x1b\x07\xb2\xb7H\xe7l",
-            parent_id=b"rhX=\xb9\x96IG",
-            id=b"\xe2\xd8\xcc\x0b[\xef\\\x8b",
+            trace_id=util.generate_trace_id(),
+            parent_id=util.generate_span_id(),
+            id=util.generate_span_id(),
             name="test-span",
         )
         return span
@@ -29,7 +28,7 @@ def span(request):
 @pytest.fixture
 def span_id(span):
     if span:
-        return hex_encode_bytes(span.id)
+        return util.format_span_id(span.id)
     return ""
 
 
@@ -60,20 +59,22 @@ def test_accepts_log_level(target):
 
 
 def test_start_root(target):
-    span_id = target.generate_span_id()
-    target.start(id=span_id, name="test-span")
+    span_id = util.generate_span_id()
+    span = Span(id=span_id, name="test-span")
+    target.start({}, span)
     output = target._file.getvalue()
-    assert output == f"[{hex_encode_bytes(span_id)}/1] start test-span\n"
+    assert output == f"[{util.format_span_id(span_id)}/1] start test-span\n"
 
 
 def test_start_child(target):
-    trace_id = target.generate_trace_id()
-    parent_id = target.generate_span_id()
-    span_id = target.generate_span_id()
-    target.start(trace_id, parent_id, span_id, "test-span")
+    trace_id = util.generate_trace_id()
+    parent_id = util.generate_span_id()
+    span_id = util.generate_span_id()
+    span = Span(trace_id=trace_id, parent_id=parent_id, id=span_id, name="test-span")
+    target.start({}, span)
     output = target._file.getvalue()
 
-    expected = f"[{hex_encode_bytes(span_id)}/1] start test-span\n"
+    expected = f"[{util.format_span_id(span_id)}/1] start test-span\n"
     assert output == expected
 
 
@@ -126,14 +127,14 @@ def test_count(target, span, span_id, tags):
 
 
 def test_log_bytes_tags(target):
-    id = target.generate_span_id()
+    id = util.generate_span_id()
     target.log(log.WARNING, "test-log-message", {"id": id})
     output = target._file.getvalue()
-    assert output == f"[/1] id={hex_encode_bytes(id)} WARNING test-log-message\n"
+    assert output == f"[/1] id={id} WARNING test-log-message\n"
 
 
 def test_int_span_id(target):
-    span = target.span(trace_id=12345, id=123, name="test-span")
+    span = Span(trace_id=12345, id=123, name="test-span")
     target.log(log.WARNING, "test-log-message", {}, span)
     output = target._file.getvalue()
-    assert output == "[123/1] WARNING test-log-message\n"
+    assert output == "[7b/1] WARNING test-log-message\n"

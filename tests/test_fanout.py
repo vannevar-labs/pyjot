@@ -1,7 +1,7 @@
 import pytest
 
 from jot import log
-from jot.base import Target
+from jot.base import Span, Target
 from jot.fanout import FanOutTarget
 
 TAGS_INDEX = -2
@@ -23,7 +23,7 @@ def assert_forwards(fan, mocker):
         one = mocker.spy(fan.targets[1], method_name)
 
         # create the special args
-        span = fan.start()
+        span = Span()
         tags = {"flooge": 91}
 
         # call the method
@@ -102,7 +102,7 @@ def test_log_warning(fan, mocker):
     one = mocker.spy(fan.targets[1], "log")
 
     # create the special args
-    span = fan.start()
+    span = Span()
     tags = {"flooge": 91}
 
     # call the method
@@ -118,56 +118,6 @@ def test_log_warning(fan, mocker):
     assert one.call_args.args[1] == "a log message"
     assert one.call_args.args[TAGS_INDEX] is not tags
     assert one.call_args.args[TAGS_INDEX]["flooge"] == 91
-
-
-def test_generate_trace_id():
-    fan = FanOutTarget(IntTarget(), Target())
-    fan_id = fan.generate_trace_id()
-    assert fan_id == 1
-
-
-def test_generate_span_id():
-    fan = FanOutTarget(IntTarget(), Target())
-    span_id = fan.generate_span_id()
-    assert span_id == 2
-
-
-def test_format_trace_id():
-    fan = FanOutTarget(IntTarget(), Target())
-    formatted = fan.format_trace_id(1)
-    assert formatted == "1"
-
-
-def test_format_span_id():
-    fan = FanOutTarget(IntTarget(), Target())
-    formatted = fan.format_span_id(2)
-    assert formatted == "2"
-
-
-def test_generate_trace_id_default():
-    fan = FanOutTarget()
-    fan_id = fan.generate_trace_id()
-    assert fan_id is not None
-
-
-def test_generate_span_id_default():
-    fan = FanOutTarget()
-    span_id = fan.generate_span_id()
-    assert span_id is not None
-
-
-def test_format_trace_id_default():
-    fan = FanOutTarget()
-    id = fan.generate_trace_id()
-    formatted = fan.format_trace_id(id)
-    assert isinstance(formatted, str)
-
-
-def test_format_span_id_default():
-    fan = FanOutTarget()
-    id = fan.generate_span_id()
-    formatted = fan.format_span_id(id)
-    assert isinstance(formatted, str)
 
 
 @pytest.fixture
@@ -190,7 +140,7 @@ def ok(broken):
 
 
 def test_traps_errors_finish(broken, ok):
-    span = ok.span()
+    span = Span()
     broken.finish({}, span)
     assert ok.finish.called
 

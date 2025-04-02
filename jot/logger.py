@@ -1,7 +1,7 @@
 import logging
 
 import jot
-from jot import facade, log
+from jot import facade, log, util
 from jot.base import Target
 
 PY2JOT_MAP = {
@@ -92,9 +92,9 @@ class LoggerTarget(Target):
         if span:
             tags.update(
                 {
-                    "trace_id": span.trace_id.hex(),
-                    "parent_id": span.parent_id.hex(),
-                    "span_id": self.format_span_id(span.id),
+                    "trace_id": util.format_trace_id(span.trace_id),
+                    "parent_id": util.format_span_id(span.parent_id),
+                    "span_id": util.format_span_id(span.id),
                     "span_name": span.name,
                 }
             )

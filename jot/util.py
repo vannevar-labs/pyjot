@@ -9,20 +9,31 @@ _to_hex = codecs.getencoder("hex")
 _to_str = codecs.getdecoder("ascii")
 
 
+def _generate_id(num_bits):
+    id = random.getrandbits(num_bits)
+    while id == 0:
+        id = random.getrandbits(num_bits)
+    return id
+
+
+def _format_id(id):
+    return hex(id)[2:]
+
+
 def generate_trace_id():
-    return bytes(random.getrandbits(8) for _ in range(16))
+    return _generate_id(128)
 
 
 def generate_span_id():
-    return bytes(random.getrandbits(8) for _ in range(8))
+    return _generate_id(64)
 
 
 def format_trace_id(id):
-    return hex_encode_bytes(id)
+    return _format_id(id)
 
 
 def format_span_id(id):
-    return hex_encode_bytes(id)
+    return _format_id(id)
 
 
 def hex_encode_bytes(id):

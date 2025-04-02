@@ -1,38 +1,27 @@
-from jot.zipkin import ZipkinTarget
 import json
+
+import pytest
+
+from jot.base import Span
+from jot.zipkin import ZipkinTarget
+
+
+@pytest.fixture
+def span():
+    span = Span()
+    span.start()
+    return span
 
 
 def test_constructor():
     ZipkinTarget(None)
 
 
-def test_start_root():
-    target = ZipkinTarget(None)
-    span = target.start()
-    check_ids(span)
-    assert span.parent_id is None
-    assert span.name is None
-
-
-def test_start_child():
-    target = ZipkinTarget(None)
-    root = target.start()
-    span = target.start(root.trace_id, root.id, name="span")
-    check_ids(span)
-    assert span.parent_id == root.id
-
-
-def test_start_name():
-    target = ZipkinTarget(None)
-    span = target.start(name="root span")
-    assert span.name == "root span"
-
-
-def test_finish(requests_mock):
+def test_finish(span, requests_mock):
+    child = Span(trace_id=span.trace_id, parent_id=span.id, name="test-span")
+    child.start()
     target = ZipkinTarget("http://example.com/post")
-    root = target.start()
-    span = target.start(root.trace_id, root.id, name="test-span")
-    target.event("an event", {}, span)
+    target.event("an event", {}, child)
     tags = {
         "pluff": 667,
         "kind": "CLIENT",
@@ -44,7 +33,7 @@ def test_finish(requests_mock):
     }
 
     requests_mock.post(target.url, status_code=202)
-    target.finish(tags, span)
+    target.finish(tags, child)
     assert requests_mock.called_once
 
     payload = json.loads(requests_mock.last_request.text)
@@ -82,12 +71,10 @@ def test_finish(requests_mock):
     ]
 
 
-def test_root_span(requests_mock):
+def test_root_span(span, requests_mock):
     target = ZipkinTarget("http://example.com/post")
-    root = target.start()
-
     requests_mock.post(target.url, status_code=202)
-    target.finish({}, root)
+    target.finish({}, span)
     assert requests_mock.called_once
 
     span = json.loads(requests_mock.last_request.text)[0]

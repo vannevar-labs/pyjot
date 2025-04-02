@@ -1,3 +1,4 @@
+from . import util
 from .base import Meter
 
 active_meter = Meter()
@@ -11,7 +12,7 @@ def _swap_active(new_active):
 
 
 def generate_trace_id():
-    return active_meter.target.generate_trace_id()
+    return util.generate_trace_id()
 
 
 def span(*args, **kwargs):

@@ -13,7 +13,7 @@ def target():
 @pytest.fixture(params=[True, False], ids=["with-span", "without-span"])
 def active_span(request, target):
     if request.param:
-        return target.start()
+        return Span()
 
 
 @pytest.fixture(params=[True, False], ids=["facade", "meter"])

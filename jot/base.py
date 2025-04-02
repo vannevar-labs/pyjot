@@ -24,7 +24,7 @@ class Meter:
         else:
             trace_id = None
             parent_id = None
-        span = self.target.span(trace_id=trace_id, parent_id=parent_id, name=name)
+        span = Span(trace_id=trace_id, parent_id=parent_id, name=name)
         return Meter(self.target, span, **tags)
 
     def start(self, name=None, /, *, trace_id=None, parent_id=None, **kwtags):
@@ -111,12 +111,6 @@ class Event:
 
 
 class Span:
-    @classmethod
-    def from_parent(cls, parent, name=None):
-        trace_id = parent.trace_id if parent else None
-        parent_id = parent.id if parent else None
-        return cls(trace_id, parent_id, name=name)
-
     def __init__(self, trace_id=None, parent_id=None, id=None, name=None):
         self.trace_id = trace_id if trace_id else util.generate_trace_id()
         self.parent_id = parent_id
@@ -177,32 +171,11 @@ class Target:
     def __init__(self, level=None):
         self.level = level if level is not None else log.DEFAULT
 
-    def generate_trace_id(self):
-        return util.generate_trace_id()
-
-    def generate_span_id(self):
-        return util.generate_span_id()
-
-    def format_trace_id(self, trace_id):
-        return util.format_trace_id(trace_id)
-
-    def format_span_id(self, span_id):
-        return util.format_span_id(span_id)
-
     def accepts_log_level(self, level):
         return level <= self.level
 
-    def span(self, trace_id=None, parent_id=None, id=None, name=None):
-        if trace_id is None:
-            trace_id = self.generate_trace_id()
-        if id is None:
-            id = self.generate_span_id()
-        return Span(trace_id, parent_id, id, name)
-
-    def start(self, trace_id=None, parent_id=None, id=None, name=None):
-        span = self.span(trace_id, parent_id, id, name)
-        span.start()
-        return span
+    def start(self, tags, span):
+        pass
 
     def finish(self, tags, span):
         pass

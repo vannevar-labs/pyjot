@@ -2,6 +2,8 @@ import sys
 import time
 import traceback
 
+from jot import util
+
 from . import log
 from .base import Target
 from .util import hex_encode_bytes
@@ -18,20 +20,8 @@ class PrintTarget(Target):
         super().__init__(level)
         self._file = file
 
-    def format_trace_id(self, trace_id):
-        if not isinstance(trace_id, bytes):
-            return str(trace_id)
-        return super().format_trace_id(trace_id)
-
-    def format_span_id(self, span_id):
-        if not isinstance(span_id, bytes):
-            return str(span_id)
-        return super().format_span_id(span_id)
-
-    def start(self, trace_id=None, parent_id=None, id=None, name=None):
-        span = super().start(trace_id, parent_id, id, name)
-        self._write(span, {}, "start", name)
-        return span
+    def start(self, tags, span):
+        self._write(span, {}, "start", span.name)
 
     def finish(self, tags, span):
         tags["duration"] = span.duration
@@ -57,7 +47,7 @@ class PrintTarget(Target):
 
     def _write(self, span, tags=None, *more):
         mns = _now()
-        span_id = self.format_span_id(span.id) if span else ""
+        span_id = util.format_span_id(span.id) if span else ""
         chunks = [f"[{span_id}/{mns}]"]
         if isinstance(tags, dict):
             for k, v in tags.items():

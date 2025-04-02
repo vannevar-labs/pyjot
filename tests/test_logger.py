@@ -5,7 +5,7 @@ import pytest
 from callee.numbers import Integer
 
 import jot
-from jot import facade
+from jot import facade, log, util
 from jot.base import Span
 
 IGNORED_TAGS = {"taskName"}
@@ -25,7 +25,7 @@ class ExpectedTags:
 
 @pytest.fixture(autouse=True)
 def init():
-    jot.init(jot.base.Target(level=jot.log.ALL))
+    jot.init(jot.base.Target(level=log.ALL))
     jot.handle_logs("py2jot")
     yield
     jot.ignore_logs("py2jot")
@@ -53,7 +53,7 @@ def filename():
 @pytest.fixture
 def info_level():
     old_level = facade.active_meter.target.level
-    facade.active_meter.target.level = jot.log.INFO
+    facade.active_meter.target.level = log.INFO
     yield
     facade.active_meter.target.level = old_level
 
@@ -68,9 +68,9 @@ def spy(mocker):
 @pytest.fixture
 def span():
     span = Span(
-        trace_id=b"\x12!]'E{2\xc9\xf5\x1b\x07\xb2\xb7H\xe7l",
-        parent_id=b"rhX=\xb9\x96IG",
-        id=b"\xe2\xd8\xcc\x0b[\xef\\\x8b",
+        trace_id=util.generate_trace_id(),
+        parent_id=util.generate_span_id(),
+        id=util.generate_span_id(),
         name="test-span",
     )
     return span
@@ -80,7 +80,7 @@ def span():
 def test_jot_via_logger(mocker, py2jot, filename, spy, level_method_name):
     log_function = getattr(py2jot, level_method_name)
     level_name = level_method_name.upper()
-    jot_level = getattr(jot.log, level_name)
+    jot_level = getattr(log, level_name)
     log_message = f"test {level_method_name} log message"
 
     log_function(log_message, extra={"plonk": 42})
@@ -112,7 +112,7 @@ def test_log_via_jot(mocker, jot2py, span, level_name):
     spy = mocker.spy(jot2py, "log")
     target = jot.logger.LoggerTarget("jot2py")
 
-    jot_level = getattr(jot.log, level_name)
+    jot_level = getattr(log, level_name)
     py_level = getattr(logging, level_name)
     message = "test message"
     tags = {"plonk": 42}
@@ -120,9 +120,9 @@ def test_log_via_jot(mocker, jot2py, span, level_name):
 
     expected_tags = {
         **tags,
-        "trace_id": span.trace_id.hex(),
-        "parent_id": span.parent_id.hex(),
-        "span_id": span.id.hex(),
+        "trace_id": util.format_trace_id(span.trace_id),
+        "parent_id": util.format_span_id(span.parent_id),
+        "span_id": util.format_span_id(span.id),
         "span_name": span.name,
     }
     spy.assert_called_once_with(py_level, message, extra=expected_tags)

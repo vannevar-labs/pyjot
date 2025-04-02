@@ -33,8 +33,6 @@ from opentelemetry.trace import (
     Status,
     StatusCode,
     TraceFlags,
-    format_span_id,
-    format_trace_id,
 )
 
 from jot import log
@@ -90,18 +88,6 @@ class OTLPTarget(Target):
         if span_data is None:
             span_data = OtelSpanData()
         return span_data
-
-    def generate_trace_id(self):  # type: ignore
-        return _generator.generate_trace_id()
-
-    def generate_span_id(self):  # type: ignore
-        return _generator.generate_span_id()
-
-    def format_trace_id(self, trace_id):
-        return format_trace_id(trace_id)
-
-    def format_span_id(self, span_id):
-        return format_span_id(span_id)
 
     def log(self, level, message, tags, span=None):
         if self.log_exporter is None:

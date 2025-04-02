@@ -32,26 +32,6 @@ class FanOutTarget(Target):
     def __init__(self, *targets, level=None):
         self.targets = targets
 
-    def generate_trace_id(self):
-        if not self.targets:
-            return super().generate_trace_id()
-        return self.targets[0].generate_trace_id()
-
-    def generate_span_id(self):
-        if not self.targets:
-            return super().generate_span_id()
-        return self.targets[0].generate_span_id()
-
-    def format_trace_id(self, trace_id):
-        if not self.targets:
-            return super().format_trace_id(trace_id)
-        return self.targets[0].format_trace_id(trace_id)
-
-    def format_span_id(self, span_id):
-        if not self.targets:
-            return super().format_span_id(span_id)
-        return self.targets[0].format_span_id(span_id)
-
     def accepts_log_level(self, level):
         return any(t.accepts_log_level(level) for t in self.targets)
 

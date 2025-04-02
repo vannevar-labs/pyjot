@@ -2,6 +2,7 @@ import traceback
 
 import requests
 
+from . import util
 from .base import Target
 
 
@@ -29,9 +30,9 @@ class ZipkinTarget(Target):
 
     def finish(self, tags, span):
         obj = {
-            "traceId": self.format_trace_id(span.trace_id),
-            "parentId": self.format_span_id(span.parent_id),
-            "id": self.format_span_id(span.id),
+            "traceId": util.format_trace_id(span.trace_id),
+            "parentId": util.format_span_id(span.parent_id) if span.parent_id is not None else None,
+            "id": util.format_span_id(span.id),
             "timestamp": span.start_time // 1000,
             "duration": span.duration // 1000,
         }
