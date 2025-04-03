@@ -69,12 +69,19 @@ class OTLPTarget(Target):
             level=level,
         )
 
-    def __init__(self, span_exporter=None, log_exporter=None, metric_exporter=None, level=None):
+    def __init__(
+        self,
+        span_exporter=None,
+        log_exporter=None,
+        metric_exporter=None,
+        level=None,
+        resource_attributes={},
+    ):
         super().__init__(level)
         self.span_exporter = span_exporter
         self.log_exporter = log_exporter
         self.metric_exporter = metric_exporter
-        self.resource = _create_resource()
+        self.resource = _create_resource(resource_attributes)
         self.scope = InstrumentationScope("unknown", version=None, schema_url=SCHEMA_URL)
         self.span_data = {}
 
@@ -219,8 +226,8 @@ class OtelSpanData:
         )
 
 
-def _create_resource():
-    initial = Resource(attributes={}, schema_url=SCHEMA_URL)
+def _create_resource(resource_attibutes):
+    initial = Resource(attributes=resource_attibutes, schema_url=SCHEMA_URL)
     detectors = [OTELResourceDetector(), ProcessResourceDetector(), OsResourceDetector()]
     aggregated = get_aggregated_resources(detectors, initial_resource=initial)
     return aggregated

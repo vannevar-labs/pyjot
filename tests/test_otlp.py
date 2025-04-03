@@ -56,7 +56,12 @@ def get_metric(target):
     return get_metric
 
 
-def test_no_exporter(span):
+def test_resource_attributes():
+    target = OTLPTarget(resource_attributes={"service.name": "test-service"})
+    assert target.resource.attributes["service.name"] == "test-service"
+
+
+def test_no_exporters(span):
     target = OTLPTarget(span_exporter=None, log_exporter=None, metric_exporter=None, level=log.ALL)
     target.event("test_event", {}, span)
     target.log(log.INFO, "test_log", {}, span)
