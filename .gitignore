@@ -16,8 +16,6 @@ pytest*.xml
 lib/
 
 # packaging
-.pdm.toml
-.pdm-python
 dist/
 build/
 
