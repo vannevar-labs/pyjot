@@ -9,15 +9,36 @@ _to_hex = codecs.getencoder("hex")
 _to_str = codecs.getdecoder("ascii")
 
 
+# Global variable to control deterministic behavior for testing
+_test_random_seed = None
+
+
 def _generate_id(num_bits):
+    # For testing, use deterministic seed if set
+    if _test_random_seed is not None:
+        random.seed(_test_random_seed)
+    
     id = random.getrandbits(num_bits)
     while id == 0:
         id = random.getrandbits(num_bits)
     return id
 
 
-def _format_id(id):
-    return hex(id)[2:]
+def set_test_random_seed(seed):
+    """Set a deterministic seed for ID generation during testing."""
+    global _test_random_seed
+    _test_random_seed = seed
+
+
+def clear_test_random_seed():
+    """Clear the test seed to restore normal random behavior."""
+    global _test_random_seed
+    _test_random_seed = None
+
+
+def _format_id(id, width):
+    hex_str = hex(id)[2:]
+    return hex_str.zfill(width)
 
 
 def generate_trace_id():
@@ -29,11 +50,12 @@ def generate_span_id():
 
 
 def format_trace_id(id):
-    return _format_id(id)
+    return _format_id(id, 32)
 
 
 def format_span_id(id):
-    return _format_id(id)
+    return _format_id(id, 16)
+
 
 
 def hex_encode_bytes(id):
