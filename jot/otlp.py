@@ -118,7 +118,7 @@ class OTLPTarget(Target):
         attributes = {
             "exception.type": type(exception).__name__,
             "exception.message": str(exception),
-            "exception.stacktrace": "".join(format_exception(exception)),
+            "exception.stacktrace": "".join(format_exception(type(exception), exception, exception.__traceback__)),
         }
         self.event(message, attributes, span)
         self._get_span_data(span).note_error(exception)
