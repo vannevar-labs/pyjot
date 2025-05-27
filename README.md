@@ -32,12 +32,29 @@ try:
 except ZeroDivisionError as exc:
   jot.error("Error calculating sales tax", exc, {"customer_id": 1337})
 
-# Traces for application performance monitoring
-with jot.span("task", trace_id=544678, parent_id=None, {"importance": "high"}):
-  with jot.span("subtask 1"):
-    sleep(1)
-    jot.info("feeling refreshed")
-  with jot.span("subtask 2"):
-    sleep(0.2)
-    jot.warning("didn't get enough sleep")
+# instrument functions to create traces
+@instrument
+def add(a, b):
+    # adds a span named 'add' to the current trace
+    jot.debug("Adding numbers", {"a": a, "b": b})
+    return a + b
+
+@instrument(category="math")
+def multiply(a, b):
+    # 'category': 'math' will be automatically added to log message
+    jot.debug("Multiplying numbers", {"a": a, "b": b})
+    return a * b
+
+@instrument('customer_id')
+def subtract(a, b):
+    # subtract now accepts a keyword argument 'customer_id' to add to the trace
+    jot.debug("Subtracting numbers", {"a": a, "b": b})
+    return a - b
+
+add()
+multiply(3, 4)
+subtract(10, 5, customer_id=1337)
+
+
+
 ```
