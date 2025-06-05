@@ -201,3 +201,6 @@ async def test_async_error_handled(func, logspy, errspy):
     args = logspy.call_args_list[5][0]
     assert args[1] == "outer after"
     assert args[2]['ord'] == 6
+
+    # check errors
+    assert errspy.call_count == 0
