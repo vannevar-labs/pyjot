@@ -17,6 +17,7 @@ build-backend = "hatchling.build"
 rollbar = ["rollbar>=0.16.3"]
 postgres = ["psycopg2>=2.9.4"]
 sentry = ["bleach==5.0.1", "sentry-sdk>=1.30.0"]
+zipkin = ["requests~=2.26"]
 otel = [
     "opentelemetry-exporter-otlp-proto-grpc>=1.31.1",
     "opentelemetry-exporter-otlp-proto-http>=1.31.1",
@@ -25,9 +26,10 @@ otel = [
 [dependency-groups]
 dev = [
     "mock~=4.0",
+    "pytest-asyncio>=0.20.3",
     "pytest-mock~=3.6",
     "pytest-order~=1.0",
-    "pytest~=6.2",
+    "pytest>=7.0",
     "requests-mock~=1.9.3",
     "tox>=3.25.0",
     "callee>=0.3.1",
