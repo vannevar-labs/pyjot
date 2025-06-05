@@ -166,3 +166,38 @@ async def test_async_tag_two(func, args, kwargs, logspy):
     # all the logs have tag_two
     for c in logspy.call_args_list:
         assert c.args[2]["tag_two"] == 2
+
+@pytest.mark.select("error_propagation")
+async def test_async_error_handled(func, logspy, errspy):
+
+    # the outer function calls inner_throws, which raises an error. Outer catches it, so it should
+    # not propagate to this test.
+    try:
+        await func()
+    except Exception as e:
+        print(f"Caught exception: {type(e).__name__}: {e}")
+
+    # check logs
+    args = logspy.call_args_list[0][0]
+    assert args[1] == "outer before"
+    assert args[2]['ord'] == 1
+
+    args = logspy.call_args_list[1][0]
+    assert args[1] == "middle before"
+    assert args[2]['ord'] == 2
+
+    args = logspy.call_args_list[2][0]
+    assert args[1] == "inner before"
+    assert args[2]['ord'] == 3
+
+    args = logspy.call_args_list[3][0]
+    assert args[1] == "fail before"
+    assert args[2]['ord'] == 4
+
+    args = logspy.call_args_list[4][0]
+    assert args[1] == "middle caught"
+    assert args[2]['ord'] == 5
+
+    args = logspy.call_args_list[5][0]
+    assert args[1] == "outer after"
+    assert args[2]['ord'] == 6
