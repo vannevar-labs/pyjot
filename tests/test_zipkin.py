@@ -42,9 +42,9 @@ def test_finish(span, requests_mock):
     assert len(payload) == 1
     s = payload[0]
 
-    assert_is_id(s, "id")
+    assert_is_id(s, "id", 16)
     assert_is_id(s, "traceId", 32)
-    assert_is_id(s, "parentId")
+    assert_is_id(s, "parentId", 16)
     assert_is_int(s, "timestamp")
     assert_is_int(s, "duration")
 

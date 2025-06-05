@@ -137,4 +137,4 @@ def test_int_span_id(target):
     span = Span(trace_id=12345, id=123, name="test-span")
     target.log(log.WARNING, "test-log-message", {}, span)
     output = target._file.getvalue()
-    assert output == "[7b/1] WARNING test-log-message\n"
+    assert output == "[000000000000007b/1] WARNING test-log-message\n"
