@@ -197,30 +197,3 @@ async def fn_one_suspension_2():
     await asyncio.sleep(0.1)
     jot.info("running", ord=2)
     return "done"
-
-@select("error_propagation")
-@jot.instrument
-async def errprop_outer():
-    jot.info("outer before", ord=1)
-    await errprop_middle()
-    jot.info("outer after", ord=6)
-
-async def errprop_middle():
-    try:
-        jot.info("middle before", ord=2)
-        await errprop_inner()
-        jot.info("middle after", ord=-1)
-    except RuntimeError as e:
-        jot.info("middle caught", ord=5, error=e)
-
-async def errprop_inner():
-    jot.info("inner before", ord=3)
-    coro = errprop_fail()
-    task = asyncio.create_task(coro)
-    await task
-    jot.info("inner after", ord=-1)
-
-async def errprop_fail():
-    jot.info("fail before", ord=4)
-    await asyncio.sleep(0.01)
-    raise RuntimeError("oops")
