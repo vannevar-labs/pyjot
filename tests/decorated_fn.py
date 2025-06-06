@@ -197,6 +197,3 @@ async def fn_one_suspension_2():
     await asyncio.sleep(0.1)
     jot.info("running", ord=2)
     return "done"
-
-
-# TODO: more tests for argument combinations

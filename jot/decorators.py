@@ -40,11 +40,20 @@ def wrap_async(func, dynamic_tag_names, static_tags):
                 future = coro.send(None)
                 _facade._swap_active(parent)
                 while True:
-                    if future is None:
-                        value = None
-                    else:
-                        done, pending = await asyncio.wait([future])
-                        value = done.pop().result()
+                    value = None
+                    if future:
+                        await asyncio.wait([future])
+                        exc = future.exception()
+                        if exc:
+                            _facade._swap_active(child)
+                            future = coro.throw(exc)
+                            _facade._swap_active(parent)
+                            continue
+                        else:
+                            # asyncio doesn't seem to actually use the value passed to send(),
+                            # but just in case there is some circumstance where it does...
+                            value = future.result()
+
 
                     _facade._swap_active(child)
                     future = coro.send(value)
