@@ -1,60 +1,71 @@
-Jot
-===
+# Pyjot
 
-A library for instrumenting code and sending telemetry information to an aggregator.
+A lightweight Python library for telemetry instrumentation - logs, metrics, traces, and errors.
 
-
-## Example
+## Quick Start
 
 ```python
 import jot
 from jot.print import PrintTarget
 
-# A target provides the destination for the telemetry data. If jot is not initialized, all
-# telemetry will be ignored. `init()` also accepts a dictionary of tags to be applied to all
-# logs, metrics, errors and traces.
-jot.init(PrintTarget(), {"environment": "staging"})
+# Initialize with a target and global tags
+jot.init(PrintTarget(), {"service": "my-app", "environment": "production"})
 
-# Three levels of logging, with structured data
-jot.debug("debug message", {"more": "tags"})
-jot.info("info message", {"numeric": 64})
-jot.warning("uh oh", {"level_of_concern": 6})
+# Structured logging
+jot.info("User logged in", {"user_id": 123, "method": "oauth"})
 
-# Magnitudes are point-in-time measurements
-jot.magnitude("memory-usage-bytes", 8096, {"executable": false})
+# Metrics
+jot.count("requests", 1, {"endpoint": "/api/users", "status": 200})
+jot.magnitude("memory_usage_mb", 256, {"process": "worker"})
 
-# Counts are cumulative
-jot.count("requests", 3, {"http.status": 200})
-
-# Error reporting collects stack traces for analysis
+# Error tracking with stack traces
 try:
-  1/0
-except ZeroDivisionError as exc:
-  jot.error("Error calculating sales tax", exc, {"customer_id": 1337})
+    result = 1 / 0
+except ZeroDivisionError as e:
+    jot.error("Division error", e, {"operation": "calculate"})
 
-# instrument functions to create traces
-@instrument
-def add(a, b):
-    # adds a span named 'add' to the current trace
-    jot.debug("Adding numbers", {"a": a, "b": b})
-    return a + b
+# Function tracing
+@jot.instrument
+def process_order(order_id):
+    jot.info("Processing order", {"order_id": order_id})
+    return "processed"
 
-@instrument(category="math")
-def multiply(a, b):
-    # 'category': 'math' will be automatically added to log message
-    jot.debug("Multiplying numbers", {"a": a, "b": b})
-    return a * b
-
-@instrument('customer_id')
-def subtract(a, b):
-    # subtract now accepts a keyword argument 'customer_id' to add to the trace
-    jot.debug("Subtracting numbers", {"a": a, "b": b})
-    return a - b
-
-add()
-multiply(3, 4)
-subtract(10, 5, customer_id=1337)
-
-
-
+process_order(456)  # Automatically creates a trace span
 ```
+
+## Key Features
+
+- **Zero-config telemetry** - If `jot.init()` is never called, all operations are no-ops
+- **Structured everything** - Logs, metrics, errors, and traces all support key-value tags
+- **Multiple targets** - Send to console, OpenTelemetry, Sentry, Rollbar, or multiple destinations
+- **Automatic tracing** - `@jot.instrument` decorator for effortless function tracing
+- **Python logging bridge** - Route standard library logging through Jot targets
+
+## Targets
+
+Send telemetry to different destinations:
+
+- **PrintTarget** - Console output for development
+- **OTLPTarget** - OpenTelemetry for production observability  
+- **SentryTarget** - Error tracking and performance monitoring
+- **RollbarTarget** - Error reporting
+- **FanOutTarget** - Send to multiple targets simultaneously
+
+## Installation
+
+```bash
+pip install dl-jot
+
+# With optional dependencies
+pip install dl-jot[sentry,rollbar,postgres,otel]
+```
+
+## Documentation
+
+- **[Quick Reference](QUICKREF.md)** - Common patterns and examples
+- **[API Reference](API.md)** - Complete function and class documentation  
+- **[Contributing Guide](CONTRIBUTING.md)** - For developers working on Pyjot itself
+
+## License
+
+See LICENSE file.
