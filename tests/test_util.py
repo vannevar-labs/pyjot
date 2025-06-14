@@ -1,7 +1,5 @@
 from jot.util import (
     add_caller_tags,
-    format_span_id,
-    format_trace_id,
     hex_decode_bytes,
     hex_encode_bytes,
 )
@@ -15,7 +13,7 @@ def test_add_caller_tags():
 
     inner(tags)
     assert tags["file"] == __file__
-    assert tags["line"] == 14
+    assert tags["line"] == 12
     assert tags["function"] == "inner"
 
 
@@ -39,15 +37,3 @@ def test_to_hex():
 def test_to_hex_none():
     actual = hex_encode_bytes(None)
     assert actual is None
-
-
-def test_format_small_trace_id():
-    actual = format_trace_id(123456789)
-    expected = "000000000000000000000000075bcd15"
-    assert actual == expected
-
-
-def test_format_small_span_id():
-    actual = format_span_id(123456789)
-    expected = "00000000075bcd15"
-    assert actual == expected

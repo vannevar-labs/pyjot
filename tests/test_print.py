@@ -128,13 +128,17 @@ def test_count(target, span, span_id, tags):
 
 def test_log_bytes_tags(target):
     id = util.generate_span_id()
+    idstr = util.format_span_id(id)
     target.log(log.WARNING, "test-log-message", {"id": id})
     output = target._file.getvalue()
-    assert output == f"[/1] id={id} WARNING test-log-message\n"
+    assert output == f"[/1] id={idstr} WARNING test-log-message\n"
 
 
 def test_int_span_id(target):
-    span = Span(trace_id=12345, id=123, name="test-span")
+    trace_id = util.generate_trace_id()
+    span_id = util.generate_span_id()
+    span_id_str = util.format_span_id(span_id)
+    span = Span(trace_id=trace_id, id=span_id, name="test-span")
     target.log(log.WARNING, "test-log-message", {}, span)
     output = target._file.getvalue()
-    assert output == "[000000000000007b/1] WARNING test-log-message\n"
+    assert output == f"[{span_id_str}/1] WARNING test-log-message\n"

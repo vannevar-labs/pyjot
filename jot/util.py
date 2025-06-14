@@ -10,30 +10,15 @@ _to_str = codecs.getdecoder("ascii")
 
 
 # Global variable to control deterministic behavior for testing
-_test_random_seed = None
+_random = random.Random()
+
+_invalid_span_id = b"\x00" * 16  # Invalid ID
+_invalid_trace_id = b"\x00" * 32  # Invalid ID
 
 
-def _generate_id(num_bits):
-    # For testing, use deterministic seed if set
-    if _test_random_seed is not None:
-        random.seed(_test_random_seed)
-    
-    id = random.getrandbits(num_bits)
-    while id == 0:
-        id = random.getrandbits(num_bits)
-    return id
-
-
-def set_test_random_seed(seed):
-    """Set a deterministic seed for ID generation during testing."""
-    global _test_random_seed
-    _test_random_seed = seed
-
-
-def clear_test_random_seed():
-    """Clear the test seed to restore normal random behavior."""
-    global _test_random_seed
-    _test_random_seed = None
+def init_random(seed=None):
+    global _random
+    _random = random.Random(seed)
 
 
 def _format_id(id, width):
@@ -42,20 +27,25 @@ def _format_id(id, width):
 
 
 def generate_trace_id():
-    return _generate_id(128)
+    id = _random.randbytes(16)
+    while id == _invalid_trace_id:
+        id = _random.randbytes(16)
+    return id
 
 
 def generate_span_id():
-    return _generate_id(64)
+    id = _random.randbytes(8)
+    while id == _invalid_span_id:
+        id = _random.randbytes(8)
+    return id
 
 
 def format_trace_id(id):
-    return _format_id(id, 32)
+    return hex_encode_bytes(id)
 
 
 def format_span_id(id):
-    return _format_id(id, 16)
-
+    return hex_encode_bytes(id)
 
 
 def hex_encode_bytes(id):
