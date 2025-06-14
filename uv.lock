@@ -208,7 +208,7 @@ requires-dist = [
     { name = "rollbar", marker = "extra == 'rollbar'", specifier = ">=0.16.3" },
     { name = "sentry-sdk", marker = "extra == 'sentry'", specifier = ">=1.30.0" },
 ]
-provides-extras = ["rollbar", "postgres", "sentry", "zipkin", "otel"]
+provides-extras = ["influxdb", "rollbar", "postgres", "sentry", "zipkin", "otel"]
 
 [package.metadata.requires-dev]
 dev = [
