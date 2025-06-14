@@ -15,14 +15,15 @@ build-backend = "hatchling.build"
 
 [project.optional-dependencies]
 influxdb = []
-rollbar = ["rollbar>=0.16.3"]
-postgres = ["psycopg2-binary>=2.9.4"]
-sentry = ["bleach==5.0.1", "sentry-sdk>=1.30.0"]
-zipkin = ["requests~=2.26"]
 otel = [
     "opentelemetry-exporter-otlp-proto-grpc>=1.31.1",
     "opentelemetry-exporter-otlp-proto-http>=1.31.1",
 ]
+postgres = ["psycopg2-binary>=2.9.4"]
+prometheus = ["prometheus-client>=0.22.1"]
+rollbar = ["rollbar>=0.16.3"]
+sentry = ["bleach==5.0.1", "sentry-sdk>=1.30.0"]
+zipkin = ["requests~=2.26"]
 
 [dependency-groups]
 dev = [
@@ -40,6 +41,7 @@ dev = [
     "hatchling>=1.27.0",
     "pytest-asyncio>=0.20.3",
 ]
+prometheus = []
 
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
