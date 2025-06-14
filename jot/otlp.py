@@ -35,9 +35,9 @@ from opentelemetry.trace import (
     TraceFlags,
 )
 
-from jot import log
-
+from . import log
 from .base import Target
+from .util import hex_encode_bytes
 
 SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
 
@@ -96,20 +96,30 @@ class OTLPTarget(Target):
             span_data = OtelSpanData()
         return span_data
 
+    def _attributes_from_tags(self, tags):
+        return {k: self._convert_tag_value(v) for k, v in tags.items() if v is not None}
+
+    def _convert_tag_value(self, value):
+        if isinstance(value, bytes):
+            return hex_encode_bytes(value)
+        return value
+
     def log(self, level, message, tags, span=None):
         if self.log_exporter is None:
             return
 
+        trace_id = int.from_bytes(span.trace_id, "big") if span else 0
+        span_id = int.from_bytes(span.id, "big") if span else 0
         log_record = LogRecord(
             timestamp=time_ns(),
-            trace_id=span.trace_id if span else 0,
-            span_id=span.id if span else 0,
+            trace_id=trace_id,
+            span_id=span_id,
             trace_flags=TraceFlags.get_default(),
             severity_text=log.name(level),
             severity_number=_severity_map.get(level),
             body=message,
             resource=self.resource,
-            attributes=tags,
+            attributes=self._attributes_from_tags(tags),
         )
         log_data = LogData(log_record, self.scope)
         self.log_exporter.export([log_data])
@@ -118,7 +128,10 @@ class OTLPTarget(Target):
         attributes = {
             "exception.type": type(exception).__name__,
             "exception.message": str(exception),
-            "exception.stacktrace": "".join(format_exception(type(exception), exception, exception.__traceback__)),
+            "exception.stacktrace": "".join(
+                format_exception(type(exception), exception, exception.__traceback__)
+            ),
+            **self._attributes_from_tags(tags),
         }
         self.event(message, attributes, span)
         self._get_span_data(span).note_error(exception)
@@ -130,7 +143,7 @@ class OTLPTarget(Target):
         # this absurdity is brought to you by the opentelemetry sdk
         now = time_ns()
         dp = NumberDataPoint(
-            attributes=tags,
+            attributes=self._attributes_from_tags(tags),
             start_time_unix_nano=span.start_time if span else now,
             time_unix_nano=now,
             value=value,
@@ -158,7 +171,7 @@ class OTLPTarget(Target):
         # this absurdity is brought to you by the opentelemetry sdk
         now = time_ns()
         dp = NumberDataPoint(
-            attributes=tags,
+            attributes=self._attributes_from_tags(tags),
             start_time_unix_nano=span.start_time if span else now,
             time_unix_nano=now,
             value=value,
@@ -182,8 +195,9 @@ class OTLPTarget(Target):
     def finish(self, tags, span):
         if self.span_exporter is None:
             return
+        attributes = self._attributes_from_tags(tags)
         span_data = self._pop_span_data(span)
-        span_data.finish(tags)
+        span_data.finish(attributes)
         ot_span = span_data.create_readable_span(self.resource, span)
         self.span_exporter.export([ot_span])
 
@@ -205,13 +219,18 @@ class OtelSpanData:
 
     def create_readable_span(self, resource, span):
         status = self.status if self.status else Status(StatusCode.OK)
-        parent = (
-            SpanContext(span.trace_id, span.parent_id, is_remote=False) if span.parent_id else None
-        )
+        trace_id = int.from_bytes(span.trace_id, byteorder="big")
+        span_id = int.from_bytes(span.id, byteorder="big")
+        if span.parent_id is not None:
+            parent_id = int.from_bytes(span.parent_id, byteorder="big")
+            parent = SpanContext(trace_id, parent_id, is_remote=False)
+        else:
+            parent = None
+
         events = [OTLPEvent(e.name, e.tags, e.timestamp) for e in span.events]
         return ReadableSpan(
             name=span.name,
-            context=SpanContext(span.trace_id, span.id, is_remote=False),
+            context=SpanContext(trace_id, span_id, is_remote=False),
             parent=parent,
             resource=resource,
             attributes=self.attributes,
