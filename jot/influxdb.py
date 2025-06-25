@@ -71,7 +71,6 @@ class InfluxLineProtocolTarget(Target):
         return str(tag_value).replace(" ", "\\ ").replace(",", "\\,").replace("=", "\\=")
 
     def _send(self, line_protocol):
-        print(line_protocol, file=sys.stderr)
         try:
             # Send HTTP request
             response = self.session.post(
