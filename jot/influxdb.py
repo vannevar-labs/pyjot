@@ -4,6 +4,7 @@ import time
 import requests
 
 from .base import Target
+from .util import get_env
 
 
 class InfluxLineProtocolTarget(Target):
@@ -91,8 +92,16 @@ class InfluxLineProtocolTarget(Target):
 
 class InfluxDB2Target(InfluxLineProtocolTarget):
     @classmethod
-    def default(cls, level=None):
-        return cls(endpoint="http://localhost:8086", bucket="default", level=level)
+    def from_environment(cls):
+        endpoint = get_env("INFLUXDB2_ENDPOINT")
+        bucket = get_env("INFLUXDB2_BUCKET")
+        token = get_env("INFLUXDB2_TOKEN")
+        org = get_env("INFLUXDB2_ORG")
+
+        if not endpoint or not bucket:
+            return None
+
+        return cls(endpoint=endpoint, bucket=bucket, token=token, org=org)
 
     def __init__(self, endpoint, bucket, token=None, org=None, level=None):
         url = f"{endpoint}/api/v2/write"
@@ -105,8 +114,13 @@ class InfluxDB2Target(InfluxLineProtocolTarget):
 
 class InfluxDB3Target(InfluxLineProtocolTarget):
     @classmethod
-    def default(cls, level=None):
-        return cls(endpoint="http://localhost:8086", database="default", level=level)
+    def from_environment(cls):
+        endpoint = get_env("INFLUXDB3_ENDPOINT")
+        database = get_env("INFLUXDB3_DATABASE")
+        token = get_env("INFLUXDB3_TOKEN")
+        if not endpoint or not database:
+            return None
+        return cls(endpoint=endpoint, database=database, token=token)
 
     def __init__(self, endpoint, database, token=None, level=None):
         url = f"{endpoint}/api/v3/write_lp"

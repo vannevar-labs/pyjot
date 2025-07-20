@@ -1,5 +1,6 @@
-import os
 import sys
+
+from .util import get_env
 
 # define log levels
 NOTHING = 0
@@ -11,7 +12,7 @@ DEBUG = 50
 ALL = 100
 
 # set the default log level based on the environment variable LOG_LEVEL, or WARNING if not set
-DEFAULT = getattr(sys.modules[__name__], os.environ.get("LOG_LEVEL", "WARNING").upper())
+DEFAULT = getattr(sys.modules[__name__], get_env("LOG_LEVEL", "WARNING").upper())
 
 
 def name(level):

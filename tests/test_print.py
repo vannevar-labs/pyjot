@@ -1,3 +1,4 @@
+import sys
 from io import StringIO
 
 import pytest
@@ -132,6 +133,37 @@ def test_log_bytes_tags(target):
     target.log(log.WARNING, "test-log-message", {"id": id})
     output = target._file.getvalue()
     assert output == f"[/1] id={idstr} WARNING test-log-message\n"
+
+
+def test_from_environment_with_stdout(monkeypatch):
+    monkeypatch.setenv("JOT_LOG_PATH", "stdout")
+    target = PrintTarget.from_environment()
+    assert target is not None
+    assert target._file is sys.stdout
+
+
+def test_from_environment_with_stderr(monkeypatch):
+    monkeypatch.setenv("JOT_LOG_PATH", "stderr")
+    target = PrintTarget.from_environment()
+    assert target is not None
+    assert target._file is sys.stderr
+
+
+def test_from_environment_with_file_path(monkeypatch, tmp_path):
+    log_path = str(tmp_path / "test.log")
+    monkeypatch.setenv("JOT_LOG_PATH", log_path)
+    target = PrintTarget.from_environment()
+    assert target is not None
+    assert target._file.name == log_path
+    target._file.close()  # Clean up the file handle
+
+
+def test_from_environment_without_env_var(monkeypatch):
+    # Ensure the environment variable is not set
+    monkeypatch.delenv("JOT_LOG_PATH", raising=False)
+    monkeypatch.delenv("LOG_PATH", raising=False)
+    target = PrintTarget.from_environment()
+    assert target is None
 
 
 def test_int_span_id(target):

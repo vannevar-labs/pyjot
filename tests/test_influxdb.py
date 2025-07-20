@@ -80,26 +80,6 @@ def test_constructor_v3():
     assert target.session is not None
 
 
-def test_default_factory_v2():
-    """Test the InfluxDB2Target @classmethod def default() method"""
-    from jot.influxdb import InfluxDB2Target
-
-    target = InfluxDB2Target.default()
-    assert target is not None
-    assert target.url == "http://localhost:8086/api/v2/write"
-    assert target.params == {"bucket": "default"}
-
-
-def test_default_factory_v3():
-    """Test the InfluxDB3Target @classmethod def default() method"""
-    from jot.influxdb import InfluxDB3Target
-
-    target = InfluxDB3Target.default()
-    assert target is not None
-    assert target.url == "http://localhost:8086/api/v3/write_lp"
-    assert target.params == {"db": "default"}
-
-
 def test_constructor_v2_with_org():
     """Test that InfluxDB2Target constructor includes org parameter when provided"""
     from jot.influxdb import InfluxDB2Target

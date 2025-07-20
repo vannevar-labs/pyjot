@@ -10,8 +10,10 @@ class ZipkinTarget(Target):
     """A target that sends traces to a zipkin server"""
 
     @classmethod
-    def default(cls, level=None):
-        return cls("http://localhost:9411/api/v2/spans", level=level)
+    def from_environment(cls):
+        url = util.get_env("ZIPKIN_URL")
+        if url:
+            return cls(url)
 
     def __init__(self, url, level=None):
         super().__init__(level)

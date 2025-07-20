@@ -295,3 +295,118 @@ def test_finish_bytes_tag(target, span, get_span, expected_trace_id, expected_sp
     assert target.span_exporter.export.called_once()
     otspan = get_span()
     assert otspan.attributes["biff"] == "627974657320666f722074657374696e67"
+
+
+def test_from_environment_with_all_exporters(monkeypatch):
+    """Test OTLPTarget.from_environment with all exporters configured"""
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://localhost:4317/v1/logs")
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "http://localhost:4317/v1/metrics")
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4317/v1/traces")
+    monkeypatch.setenv("OTEL_SERVICE_NAME", "test-service")
+
+    # We need to mock the exporters to avoid actual connections
+    from unittest.mock import patch
+
+    with (
+        patch("jot.otlp._env_log_exporter") as mock_log_exporter,
+        patch("jot.otlp._env_metric_exporter") as mock_metric_exporter,
+        patch("jot.otlp._env_span_exporter") as mock_span_exporter,
+    ):
+        # Configure our mocks to return non-None values
+        mock_log_exporter.return_value = object()
+        mock_metric_exporter.return_value = object()
+        mock_span_exporter.return_value = object()
+
+        target = OTLPTarget.from_environment()
+
+        assert target is not None
+        assert target.log_exporter is mock_log_exporter.return_value
+        assert target.metric_exporter is mock_metric_exporter.return_value
+        assert target.span_exporter is mock_span_exporter.return_value
+        assert target.resource.attributes["service.name"] == "test-service"
+
+
+def test_from_environment_with_just_service_name(monkeypatch):
+    """Test OTLPTarget.from_environment with just service name set but no exporters"""
+    monkeypatch.setenv("SERVICE_NAME", "test-service-only")
+
+    # Clear any existing environment variables that might affect the test
+    for var in [
+        "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+        "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+    ]:
+        monkeypatch.delenv(var, raising=False)
+
+    # We need to mock the exporters to return None (no configuration)
+    from unittest.mock import patch
+
+    with (
+        patch("jot.otlp._env_log_exporter") as mock_log_exporter,
+        patch("jot.otlp._env_metric_exporter") as mock_metric_exporter,
+        patch("jot.otlp._env_span_exporter") as mock_span_exporter,
+    ):
+        # Configure our mocks to return None values
+        mock_log_exporter.return_value = None
+        mock_metric_exporter.return_value = None
+        mock_span_exporter.return_value = None
+
+        target = OTLPTarget.from_environment()
+
+        # Should return None when no exporters are configured
+        assert target is None
+
+
+def test_from_environment_with_log_exporter_only(monkeypatch):
+    """Test OTLPTarget.from_environment with only log exporter configured"""
+    monkeypatch.setenv("SERVICE_NAME", "log-service")
+
+    # We need to mock the exporters to have only log exporter configured
+    from unittest.mock import patch
+
+    with (
+        patch("jot.otlp._env_log_exporter") as mock_log_exporter,
+        patch("jot.otlp._env_metric_exporter") as mock_metric_exporter,
+        patch("jot.otlp._env_span_exporter") as mock_span_exporter,
+    ):
+        # Configure our mocks to return appropriate values
+        mock_log_exporter.return_value = object()
+        mock_metric_exporter.return_value = None
+        mock_span_exporter.return_value = None
+
+        target = OTLPTarget.from_environment()
+
+        assert target is not None
+        assert target.log_exporter is mock_log_exporter.return_value
+        assert target.metric_exporter is None
+        assert target.span_exporter is None
+        assert target.resource.attributes["service.name"] == "log-service"
+
+
+def test_from_environment_with_otel_service_name(monkeypatch):
+    """Test OTLPTarget.from_environment with OTEL_SERVICE_NAME env var"""
+    monkeypatch.setenv("OTEL_SERVICE_NAME", "otel-named-service")
+    monkeypatch.delenv("SERVICE_NAME", raising=False)
+
+    # We need to mock the exporters to have one exporter configured
+    from unittest.mock import patch
+
+    with (
+        patch("jot.otlp._env_log_exporter") as mock_log_exporter,
+        patch("jot.otlp._env_metric_exporter") as mock_metric_exporter,
+        patch("jot.otlp._env_span_exporter") as mock_span_exporter,
+    ):
+        # Configure our mocks to return appropriate values
+        mock_log_exporter.return_value = None
+        mock_metric_exporter.return_value = object()
+        mock_span_exporter.return_value = None
+
+        target = OTLPTarget.from_environment()
+
+        assert target is not None
+        assert target.log_exporter is None
+        assert target.metric_exporter is mock_metric_exporter.return_value
+        assert target.span_exporter is None
+        assert target.resource.attributes["service.name"] == "otel-named-service"

@@ -165,14 +165,18 @@ class Target:
     """A target that ignores all telemetry"""
 
     @classmethod
-    def default(cls, level=None):
-        return cls(level=level)
+    def from_environment(cls):
+        return None
 
     def __init__(self, level=None):
         self.level = level if level is not None else log.DEFAULT
 
     def accepts_log_level(self, level):
         return level <= self.level
+
+    def maybe_log(self, level, message, tags, span=None):
+        if self.accepts_log_level(level):
+            self.log(level, message, tags, span)
 
     def start(self, tags, span):
         pass

@@ -13,6 +13,12 @@ class SentryTarget(Target):
     "A target that sends telemetry to Sentry"
 
     @classmethod
+    def from_environment(cls):
+        dsn = util.get_env("SENTRY_DSN")
+        if dsn:
+            return cls(level=log.ALL, dsn=dsn)
+
+    @classmethod
     def init_sentry(cls, **kwargs):
         if sentry.Hub.current.client is not None:
             return

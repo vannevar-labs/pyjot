@@ -1,16 +1,14 @@
-from . import base, decorators, facade, flush, logger
+from . import decorators, facade, initialize, logger, util
 
-# allow extensions to the jot namespace
-__path__ = __import__("pkgutil").extend_path(__path__, __name__)
+# re-export init functions
+init = initialize.init
+init_from_environment = initialize.init_from_environment
 
-
-def init(target, /, **tags):
-    facade.active_meter = base.Meter(target, None, **tags)
-    flush.init()
-
+# re-export util functions
+generate_trace_id = util.generate_trace_id
+generate_span_id = util.generate_span_id
 
 # re-export facade functions
-generate_trace_id = facade.generate_trace_id
 start = facade.start
 finish = facade.finish
 event = facade.event

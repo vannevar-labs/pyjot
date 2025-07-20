@@ -2,9 +2,20 @@ from prometheus_client import Counter, Gauge, Histogram, Summary, start_http_ser
 
 from . import flush
 from .base import Target
+from .log import DEFAULT
+from .util import get_env
 
 
 class PrometheusTarget(Target):
+    @classmethod
+    def from_environment(cls):
+        portstr = get_env("PROMETHEUS_PORT")
+        if portstr:
+            port = int(portstr)
+            if port <= 0 or port > 65535:
+                raise ValueError(f"Invalid PROMETHEUS_PORT: {portstr}")
+            return cls(level=DEFAULT, port=port)
+
     def __init__(self, level=0, port=8080):
         super().__init__(level)
         self.metrics = {}

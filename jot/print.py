@@ -6,7 +6,8 @@ from jot import util
 
 from . import log
 from .base import Target
-from .util import hex_encode_bytes
+from .flush import add_handler
+from .util import get_env, hex_encode_bytes
 
 
 def _now():
@@ -15,6 +16,24 @@ def _now():
 
 class PrintTarget(Target):
     """A target the prints telemetry to stderr"""
+
+    @classmethod
+    def from_environment(cls):
+        filepath = get_env("LOG_PATH")
+        f = None
+        if filepath == "stdout":
+            f = sys.stdout
+        elif filepath == "stderr":
+            f = sys.stderr
+        elif filepath:
+            f = open(filepath, "a")
+
+            def close_file():
+                f.close()
+
+            add_handler(close_file)
+
+        return cls(file=f) if f else None
 
     def __init__(self, level=log.DEFAULT, file=sys.stderr):
         super().__init__(level)
