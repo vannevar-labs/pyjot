@@ -91,3 +91,22 @@ def add_caller_tags(tags):
     tags["file"] = frame.f_globals.get("__file__")
     tags["line"] = frame.f_lineno
     tags["function"] = frame.f_code.co_name
+
+
+def get_env(name, default=None):
+    varname = f"JOT_{name}"
+    if varname in os.environ:
+        return os.environ[varname]
+    return os.environ.get(name, default)
+
+
+def get_all_subclasses(cls):
+    classes = set()
+    add_subclasses(cls, classes)
+    return classes
+
+
+def add_subclasses(cls, classes):
+    for subclass in cls.__subclasses__():
+        classes.add(subclass)
+        add_subclasses(subclass, classes)

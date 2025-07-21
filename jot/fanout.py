@@ -24,11 +24,6 @@ def _forward(method):
 class FanOutTarget(Target):
     """A target that forwards calls to multiple targets"""
 
-    @classmethod
-    def default(cls, level=None):
-        target = Target.default(level)
-        return cls(target, level=level)
-
     def __init__(self, *targets, level=None):
         self.targets = targets
 

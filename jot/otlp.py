@@ -1,3 +1,4 @@
+import os
 from time import time_ns
 from traceback import format_exception
 
@@ -37,7 +38,7 @@ from opentelemetry.trace import (
 
 from . import log
 from .base import Target
-from .util import hex_encode_bytes
+from .util import get_env, hex_encode_bytes
 
 SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
 
@@ -54,20 +55,20 @@ _severity_map = {
 
 class OTLPTarget(Target):
     @classmethod
-    def gen_trace_id(cls):
-        return _generator.generate_trace_id()
+    def from_environment(cls):
+        log_exporter = _env_log_exporter()
+        metric_exporter = _env_metric_exporter()
+        span_exporter = _env_span_exporter()
+        service_name = get_env("SERVICE_NAME") or os.getenv("OTEL_SERVICE_NAME", "unknown-service")
 
-    @classmethod
-    def default(cls, level=log.DEFAULT):
-        span_exporter = OTLPSpanExporter("http://localhost:4318/v1/traces")
-        metric_exporter = OTLPMetricExporter("http://localhost:4318/v1/metrics")
-        log_exporter = OTLPLogExporter("http://localhost:4318/v1/logs")
-        return cls(
-            span_exporter=span_exporter,
-            metric_exporter=metric_exporter,
-            log_exporter=log_exporter,
-            level=level,
-        )
+        if any((log_exporter, metric_exporter, span_exporter)):
+            return OTLPTarget(
+                log_exporter=log_exporter,
+                metric_exporter=metric_exporter,
+                span_exporter=span_exporter,
+                level=log.ALL,
+                resource_attributes={"service.name": service_name},
+            )
 
     def __init__(
         self,
@@ -250,3 +251,18 @@ def _create_resource(resource_attibutes):
     detectors = [OTELResourceDetector(), ProcessResourceDetector(), OsResourceDetector()]
     aggregated = get_aggregated_resources(detectors, initial_resource=initial)
     return aggregated
+
+
+def _env_log_exporter():
+    if "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT" in os.environ:
+        return OTLPLogExporter()
+
+
+def _env_metric_exporter():
+    if "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" in os.environ:
+        return OTLPMetricExporter()
+
+
+def _env_span_exporter():
+    if "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT" in os.environ:
+        return OTLPSpanExporter()

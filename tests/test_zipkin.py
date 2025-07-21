@@ -101,3 +101,21 @@ def check_ids(span):
     if span.parent_id is not None:
         assert isinstance(span.parent_id, bytes)
         assert len(span.parent_id) == 8
+
+
+def test_from_environment_with_url(monkeypatch):
+    """Test ZipkinTarget.from_environment with URL environment variable set"""
+    monkeypatch.setenv("JOT_ZIPKIN_URL", "http://zipkin.example.com/api/v2/spans")
+    target = ZipkinTarget.from_environment()
+
+    assert target is not None
+    assert target.url == "http://zipkin.example.com/api/v2/spans"
+
+
+def test_from_environment_without_url(monkeypatch):
+    """Test ZipkinTarget.from_environment with no URL environment variable"""
+    monkeypatch.delenv("JOT_ZIPKIN_URL", raising=False)
+    monkeypatch.delenv("ZIPKIN_URL", raising=False)
+
+    target = ZipkinTarget.from_environment()
+    assert target is None
