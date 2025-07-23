@@ -12,18 +12,18 @@ def reset_prometheus_module():
     """Reset all the prometheus module's state between tests"""
 
     # Save original values
-    original_module_dict = jot.prometheus.__dict__.copy()
+    original_module_dict = jot.prometheus.prometheus.__dict__.copy()
 
     # Reset all module variables
-    jot.prometheus._server = None
-    jot.prometheus._thread = None
-    jot.prometheus._port = 8080
+    jot.prometheus.prometheus._server = None
+    jot.prometheus.prometheus._thread = None
+    jot.prometheus.prometheus._port = 8080
 
     yield
 
     # Restore the module's original state
-    jot.prometheus.__dict__.clear()
-    jot.prometheus.__dict__.update(original_module_dict)
+    jot.prometheus.prometheus.__dict__.clear()
+    jot.prometheus.prometheus.__dict__.update(original_module_dict)
 
 
 @pytest.fixture
@@ -35,12 +35,12 @@ def mock_server_setup():
 
     # Create patch for _init_prometheus to avoid actually starting the server
     def mock_init_prometheus(port):
-        jot.prometheus._port = port
-        jot.prometheus._server = mock_server
-        jot.prometheus._thread = mock_thread
+        jot.prometheus.prometheus._port = port
+        jot.prometheus.prometheus._server = mock_server
+        jot.prometheus.prometheus._thread = mock_thread
         return mock_server, mock_thread
 
-    with patch("jot.prometheus._init_prometheus", side_effect=mock_init_prometheus):
+    with patch("jot.prometheus.prometheus._init_prometheus", side_effect=mock_init_prometheus):
         yield
 
 
@@ -63,7 +63,7 @@ def test_from_environment_with_port(monkeypatch, mock_server_setup):
     assert isinstance(target, PrometheusTarget)
 
     # Check the module's global port value
-    assert jot.prometheus._port == 9090
+    assert jot.prometheus.prometheus._port == 9090
 
 
 def test_from_environment_with_jot_prefix(monkeypatch, mock_server_setup):
@@ -81,4 +81,4 @@ def test_from_environment_with_jot_prefix(monkeypatch, mock_server_setup):
     assert isinstance(target, PrometheusTarget)
 
     # Check the module's global port value
-    assert jot.prometheus._port == 7070
+    assert jot.prometheus.prometheus._port == 7070
