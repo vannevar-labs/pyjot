@@ -5,8 +5,8 @@ from sentry_sdk.integrations.modules import ModulesIntegration
 from sentry_sdk.integrations.stdlib import StdlibIntegration
 from sentry_sdk.integrations.threading import ThreadingIntegration
 
-from . import flush, log, util
-from .base import Target
+from jot import flush, log, util
+from jot.base import Target
 
 
 class SentryTarget(Target):

@@ -2,8 +2,8 @@ import traceback
 
 import requests
 
-from . import util
-from .base import Target
+from jot import util
+from jot.base import Target
 
 
 class ZipkinTarget(Target):

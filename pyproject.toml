@@ -14,16 +14,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.optional-dependencies]
-influxdb = []
-otel = [
-    "opentelemetry-exporter-otlp-proto-grpc>=1.31.1",
-    "opentelemetry-exporter-otlp-proto-http>=1.31.1",
-]
-postgres = ["psycopg2-binary>=2.9.4"]
-prometheus = ["prometheus-client>=0.22.1"]
-rollbar = ["rollbar>=0.16.3"]
-sentry = ["bleach==5.0.1", "sentry-sdk>=1.30.0"]
-zipkin = ["requests~=2.26"]
+influxdb = ["jot-influxdb"]
+otlp = ["jot-otlp"]
+prometheus = ["jot-prometheus"]
+psycopg2 = ["jot-psycopg2"]
+rollbar = ["jot-rollbar"]
+sentry = ["jot-sentry"]
+zipkin = ["jot-zipkin"]
 
 [dependency-groups]
 dev = [
@@ -52,3 +49,23 @@ asyncio_mode = "auto"
 
 [tool.hatch.build.targets.wheel]
 packages = ["jot"]
+
+[tool.uv.sources]
+jot-influxdb = { workspace = true }
+jot-otlp = { workspace = true }
+jot-prometheus = { workspace = true }
+jot-psycopg2 = { workspace = true }
+jot-rollbar = { workspace = true }
+jot-sentry = { workspace = true }
+jot-zipkin = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "extensions/influxdb",
+    "extensions/otlp",
+    "extensions/prometheus",
+    "extensions/psycopg2",
+    "extensions/rollbar",
+    "extensions/sentry",
+    "extensions/zipkin",
+]

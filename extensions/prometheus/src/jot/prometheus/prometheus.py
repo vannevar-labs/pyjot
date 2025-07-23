@@ -1,9 +1,9 @@
 from prometheus_client import Counter, Gauge, Histogram, Summary, start_http_server
 
-from . import flush
-from .base import Target
-from .log import DEFAULT
-from .util import get_env
+from jot import flush
+from jot.base import Target
+from jot.log import DEFAULT
+from jot.util import get_env
 
 
 class PrometheusTarget(Target):

@@ -3,8 +3,8 @@ import time
 
 import requests
 
-from .base import Target
-from .util import get_env
+from jot.base import Target
+from jot.util import get_env
 
 
 class InfluxLineProtocolTarget(Target):
