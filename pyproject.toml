@@ -37,8 +37,8 @@ dev = [
     "tox-gh-actions>=3.2.0",
     "hatchling>=1.27.0",
     "pytest-asyncio>=0.20.3",
+    "uv>=0.8.0",
 ]
-prometheus = []
 
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
