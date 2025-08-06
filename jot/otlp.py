@@ -1,4 +1,5 @@
 import os
+import warnings
 from time import time_ns
 from traceback import format_exception
 
@@ -111,17 +112,23 @@ class OTLPTarget(Target):
 
         trace_id = int.from_bytes(span.trace_id, "big") if span else 0
         span_id = int.from_bytes(span.id, "big") if span else 0
-        log_record = LogRecord(
-            timestamp=time_ns(),
-            trace_id=trace_id,
-            span_id=span_id,
-            trace_flags=TraceFlags.get_default(),
-            severity_text=log.name(level),
-            severity_number=_severity_map.get(level),
-            body=message,
-            resource=self.resource,
-            attributes=self._attributes_from_tags(tags),
-        )
+
+        with warnings.catch_warnings():
+            # LogRecord wants callers to use a ContextVar for trace_id/trace_flags, but jot is
+            # used in distributed systems where that causes problems. So we just ignore the warning.
+            warnings.simplefilter("ignore", category=UserWarning)
+            log_record = LogRecord(
+                timestamp=time_ns(),
+                trace_id=trace_id,
+                span_id=span_id,
+                trace_flags=TraceFlags.get_default(),
+                severity_text=log.name(level),
+                severity_number=_severity_map.get(level),
+                body=message,
+                resource=self.resource,
+                attributes=self._attributes_from_tags(tags),
+            )
+
         log_data = LogData(log_record, self.scope)
         self.log_exporter.export([log_data])
 
