@@ -406,7 +406,7 @@ class TestInheritanceTreeFix:
         # is not a direct subclass of Target
         target = facade.active_meter.target
         assert target.__class__.__name__ == "InfluxDB3Target"
-        assert target.__class__.__module__ == "jot.influxdb"
+        assert target.__class__.__module__ == "jot.influxdb.influxdb"
 
     def test_no_infinite_recursion(self, reset_env, reset_active_meter):
         """Verify that the recursive function doesn't cause infinite recursion"""

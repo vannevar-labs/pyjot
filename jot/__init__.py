@@ -1,4 +1,10 @@
+from pkgutil import extend_path
+
 from . import decorators, facade, initialize, logger, util
+
+__path__ = extend_path(__path__, __name__)
+del extend_path
+
 
 # re-export init functions
 init = initialize.init

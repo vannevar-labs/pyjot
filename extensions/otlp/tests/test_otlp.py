@@ -309,9 +309,9 @@ def test_from_environment_with_all_exporters(monkeypatch):
     from unittest.mock import patch
 
     with (
-        patch("jot.otlp._env_log_exporter") as mock_log_exporter,
-        patch("jot.otlp._env_metric_exporter") as mock_metric_exporter,
-        patch("jot.otlp._env_span_exporter") as mock_span_exporter,
+        patch("jot.otlp.otlp._env_log_exporter") as mock_log_exporter,
+        patch("jot.otlp.otlp._env_metric_exporter") as mock_metric_exporter,
+        patch("jot.otlp.otlp._env_span_exporter") as mock_span_exporter,
     ):
         # Configure our mocks to return non-None values
         mock_log_exporter.return_value = object()
@@ -344,9 +344,9 @@ def test_from_environment_with_just_service_name(monkeypatch):
     from unittest.mock import patch
 
     with (
-        patch("jot.otlp._env_log_exporter") as mock_log_exporter,
-        patch("jot.otlp._env_metric_exporter") as mock_metric_exporter,
-        patch("jot.otlp._env_span_exporter") as mock_span_exporter,
+        patch("jot.otlp.otlp._env_log_exporter") as mock_log_exporter,
+        patch("jot.otlp.otlp._env_metric_exporter") as mock_metric_exporter,
+        patch("jot.otlp.otlp._env_span_exporter") as mock_span_exporter,
     ):
         # Configure our mocks to return None values
         mock_log_exporter.return_value = None
@@ -367,9 +367,9 @@ def test_from_environment_with_log_exporter_only(monkeypatch):
     from unittest.mock import patch
 
     with (
-        patch("jot.otlp._env_log_exporter") as mock_log_exporter,
-        patch("jot.otlp._env_metric_exporter") as mock_metric_exporter,
-        patch("jot.otlp._env_span_exporter") as mock_span_exporter,
+        patch("jot.otlp.otlp._env_log_exporter") as mock_log_exporter,
+        patch("jot.otlp.otlp._env_metric_exporter") as mock_metric_exporter,
+        patch("jot.otlp.otlp._env_span_exporter") as mock_span_exporter,
     ):
         # Configure our mocks to return appropriate values
         mock_log_exporter.return_value = object()
@@ -394,9 +394,9 @@ def test_from_environment_with_otel_service_name(monkeypatch):
     from unittest.mock import patch
 
     with (
-        patch("jot.otlp._env_log_exporter") as mock_log_exporter,
-        patch("jot.otlp._env_metric_exporter") as mock_metric_exporter,
-        patch("jot.otlp._env_span_exporter") as mock_span_exporter,
+        patch("jot.otlp.otlp._env_log_exporter") as mock_log_exporter,
+        patch("jot.otlp.otlp._env_metric_exporter") as mock_metric_exporter,
+        patch("jot.otlp.otlp._env_span_exporter") as mock_span_exporter,
     ):
         # Configure our mocks to return appropriate values
         mock_log_exporter.return_value = None

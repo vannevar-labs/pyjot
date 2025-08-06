@@ -36,9 +36,9 @@ from opentelemetry.trace import (
     TraceFlags,
 )
 
-from . import log
-from .base import Target
-from .util import get_env, hex_encode_bytes
+from jot import log
+from jot.base import Target
+from jot.util import get_env, hex_encode_bytes
 
 SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
 
