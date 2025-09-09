@@ -46,7 +46,13 @@ prometheus = []
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
 testpaths = ["tests"]
-markers = ["rows", "select", "reject"]
+markers = [
+    "rows",
+    "select",
+    "reject",
+    "py311_plus: tests that require Python 3.11+",
+    "py312_plus: tests that require Python 3.12+",
+]
 filterwarnings = ["ignore::DeprecationWarning:"]
 asyncio_mode = "auto"
 

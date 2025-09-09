@@ -44,6 +44,7 @@ class TestAsyncioCompatibility:
         assert normal_outside == "modified in normal"
         assert decorated_outside == "modified in decorated"
 
+    @pytest.mark.py311_plus
     async def test_task_groups_with_exceptions(self):
         """Test that TaskGroups work correctly with decorated functions"""
 
@@ -57,25 +58,19 @@ class TestAsyncioCompatibility:
             await asyncio.sleep(delay)
             return f"Task {name} succeeded"
 
-        # Test with Python 3.11+ TaskGroup if available
-        if hasattr(asyncio, "TaskGroup"):
-            try:
-                # Import ExceptionGroup for Python 3.11+
-                from builtins import ExceptionGroup
+        # Import ExceptionGroup for Python 3.11+
+        from builtins import ExceptionGroup
 
-                with pytest.raises(ExceptionGroup) as exc_info:
-                    async with asyncio.TaskGroup() as tg:
-                        tg.create_task(succeeding_task(0.01, "A"))
-                        tg.create_task(failing_task(0.02, "B"))
-                        tg.create_task(succeeding_task(0.015, "C"))
+        with pytest.raises(ExceptionGroup) as exc_info:
+            async with asyncio.TaskGroup() as tg:
+                tg.create_task(succeeding_task(0.01, "A"))
+                tg.create_task(failing_task(0.02, "B"))
+                tg.create_task(succeeding_task(0.015, "C"))
 
-                # Should have caught the ValueError in an ExceptionGroup
-                assert len(exc_info.value.exceptions) == 1
-                assert isinstance(exc_info.value.exceptions[0], ValueError)
-                assert "Task B failed" in str(exc_info.value.exceptions[0])
-            except ImportError:
-                # Skip test on Python < 3.11
-                pytest.skip("TaskGroup and ExceptionGroup require Python 3.11+")
+        # Should have caught the ValueError in an ExceptionGroup
+        assert len(exc_info.value.exceptions) == 1
+        assert isinstance(exc_info.value.exceptions[0], ValueError)
+        assert "Task B failed" in str(exc_info.value.exceptions[0])
 
     async def test_gather_exception_handling(self):
         """Test that asyncio.gather works correctly with decorated functions"""
@@ -223,6 +218,7 @@ class TestAsyncioCompatibility:
         assert producer_result == "produced_4_items"
         assert consumer_result == [1, 2, 3, 4]
 
+    @pytest.mark.py311_plus
     async def test_timeout_behavior(self):
         """Test that asyncio.timeout works correctly with decorated functions"""
 
@@ -311,6 +307,7 @@ class TestAsyncioCompatibility:
         result = await outer_task()
         assert result == "timeout_handled"
 
+    @pytest.mark.py311_plus
     async def test_nested_decorators_with_asyncio_features(self):
         """Test complex nested scenarios with various asyncio features"""
 
