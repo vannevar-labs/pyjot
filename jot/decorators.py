@@ -33,40 +33,60 @@ def wrap_async(func, dynamic_tag_names, static_tags):
         tags = extract_tags(dynamic_tag_names, static_tags, kwargs)
         child = _facade.active_meter.span(name, **tags)
         parent = _facade._swap_active(child)
+
+        def inject_exception(coro, exception):
+            _facade._swap_active(child)
+            try:
+                result = coro.throw(exception)
+                _facade._swap_active(parent)
+                return result
+            except StopIteration:
+                # Coroutine completed, return the result
+                _facade._swap_active(parent)
+                raise
+            except asyncio.CancelledError:
+                # Coroutine didn't handle the cancellation, let it bubble up
+                _facade._swap_active(parent)
+                raise
+
+        def advance_coro(coro, value):
+            _facade._swap_active(child)
+            try:
+                result = coro.send(value)
+                _facade._swap_active(parent)
+                return result
+            except StopIteration:
+                _facade._swap_active(parent)
+                raise
+
         try:
             coro = func(*args, **kwargs)
             child.start()
             try:
-                future = coro.send(None)
-                _facade._swap_active(parent)
+                # Start the coroutine
+                future = advance_coro(coro, None)
+
                 while True:
-                    value = None
                     if future:
+                        # Wait for the future and handle cancellation
                         try:
                             await asyncio.wait([future])
-                        except asyncio.CancelledError as e:
-                            # The decorator itself was cancelled, need to cancel the coroutine
-                            _facade._swap_active(child)
-                            try:
-                                coro.throw(e)
-                            except (StopIteration, asyncio.CancelledError):
-                                pass
-                            raise  # Re-raise the CancelledError
-
-                        exc = future.exception()
-                        if exc:
-                            _facade._swap_active(child)
-                            future = coro.throw(exc)
-                            _facade._swap_active(parent)
+                        except asyncio.CancelledError as cancel_error:
+                            # Inject cancellation into the coroutine
+                            future = inject_exception(coro, cancel_error)
                             continue
-                        else:
-                            # asyncio doesn't seem to actually use the value passed to send(),
-                            # but just in case there is some circumstance where it does...
-                            value = future.result()
 
-                    _facade._swap_active(child)
-                    future = coro.send(value)
-                    _facade._swap_active(parent)
+                        # Process the completed future
+                        if future.cancelled():
+                            future = inject_exception(coro, asyncio.CancelledError())
+                        elif exception := future.exception():
+                            future = inject_exception(coro, exception)
+                        else:
+                            # Send the result to the coroutine
+                            future = advance_coro(coro, future.result())
+                    else:
+                        # No future to wait for, just advance with None
+                        future = advance_coro(coro, None)
 
             except StopIteration as e:
                 return e.value
@@ -77,7 +97,6 @@ def wrap_async(func, dynamic_tag_names, static_tags):
         except Exception as e:
             child.error(f"Error during {name}", e)
             raise
-
         finally:
             _facade._swap_active(parent)
             child.finish()
