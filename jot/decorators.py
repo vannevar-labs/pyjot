@@ -79,8 +79,8 @@ def wrap_async(func, dynamic_tag_names, static_tags):
                         # Process the completed future
                         if future.cancelled():
                             future = inject_exception(coro, asyncio.CancelledError())
-                        elif future.exception():
-                            future = inject_exception(coro, future.exception())
+                        elif exception := future.exception():
+                            future = inject_exception(coro, exception)
                         else:
                             # Send the result to the coroutine
                             future = advance_coro(coro, future.result())
