@@ -12,6 +12,16 @@ TAG_PREFIX = "JOT_TAG_"
 TAG_PREFIX_LEN = len(TAG_PREFIX)
 
 
+def autoinit():
+    if os.getenv("JOT_AUTOINIT", "true").lower() != "false":
+        from .print import PrintTarget
+
+        # ensure PrintTarget is registered, others can be registered with env vars
+        PrintTarget()
+
+        init_from_environment()
+
+
 def init_from_environment():
     _import_modules_from_environment()
     target = _get_target_from_environment()
@@ -74,3 +84,6 @@ def _get_tags_from_environment():
 def _add_tag_from_env(tags, env_var, tag_key):
     if val := get_env(env_var):
         tags[tag_key] = val
+
+
+autoinit()
