@@ -20,7 +20,7 @@ jot.* functions → facade.py → active_meter → target.method()
 ### Key Classes
 
 **`Meter`** - Instrumentation context with active span and tags
-**`Span`** - Represents a trace segment with timing and metadata  
+**`Span`** - Represents a trace segment with timing and metadata
 **`Target`** - Base class for telemetry destinations
 **`*Target`** - Concrete implementations (Print, OTLP, Sentry, etc.)
 
@@ -50,7 +50,7 @@ pytest -m "not integration"
 
 - `tests/test_*.py` - Unit tests for each module
 - `scenarios/` - Integration test scenarios
-- Mocks external services (Sentry, Rollbar, etc.)
+- Mocks external services (Sentry, etc.)
 
 ## Adding a New Target
 
@@ -73,18 +73,18 @@ class MyTarget(Target):
     def __init__(self, endpoint, level=log.DEFAULT):
         super().__init__(level)
         self.endpoint = endpoint
-    
+
     def log(self, level, message, tags, span=None):
         if not self.accepts_log_level(level):
             return
         # Send log to external service
-        
+
     def error(self, message, exception, tags, span=None):
         # Send error with stack trace
-        
+
     def magnitude(self, name, value, tags, span=None):
         # Send point-in-time metric
-        
+
     def count(self, name, value, tags, span=None):
         # Send cumulative metric
 ```
@@ -111,11 +111,7 @@ class MyTarget(Target):
 Most targets need external services. Use environment variables to enable:
 
 ```bash
-# Postgres tests
-export POSTGRES_HOST=localhost POSTGRES_DB=test
-pytest tests/test_pg.py
-
-# Sentry tests  
+# Sentry tests
 export SENTRY_DSN=https://...
 pytest tests/test_sentry.py
 ```
@@ -130,7 +126,7 @@ def log(self, level, message, tags, span=None):
     try:
         # ... send telemetry
     except Exception:
-        # Log but don't re-raise - telemetry failures 
+        # Log but don't re-raise - telemetry failures
         # shouldn't break user code
         pass
 ```

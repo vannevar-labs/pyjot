@@ -277,19 +277,6 @@ target = SentryTarget(dsn='https://...@sentry.io/...')
 jot.init(target)
 ```
 
-### `RollbarTarget`
-
-Sends errors to Rollbar.
-
-**Constructor:** `RollbarTarget(access_token=None, environment='development', level=log.NOTHING, **kwargs)`
-
-**Example:**
-```python
-from jot.rollbar import RollbarTarget
-target = RollbarTarget(access_token='rollbar_token')
-jot.init(target)
-```
-
 ### `FanOutTarget`
 
 Forwards telemetry to multiple targets.

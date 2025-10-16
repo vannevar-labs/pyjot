@@ -122,10 +122,6 @@ jot.init(OTLPTarget("http://collector:4318"))
 # Sentry (errors)
 from jot.sentry import SentryTarget
 jot.init(SentryTarget(dsn="https://..."))
-
-# Rollbar (errors)
-from jot.rollbar import RollbarTarget
-jot.init(RollbarTarget(access_token="..."))
 ```
 
 ## Configuration Patterns
@@ -161,42 +157,4 @@ async def process_request(data):
 @app.post("/process")
 async def process_endpoint(data: RequestData):
     return await process_request(data.dict())
-```
-
-## Database Queries
-
-```python
-# Automatic psycopg2 instrumentation
-import psycopg2
-from jot.pg import JotCursor
-
-conn = psycopg2.connect("postgresql://...", cursor_factory=JotCursor)
-cursor = conn.cursor()
-
-# Queries are automatically traced with spans and metrics
-cursor.execute("SELECT * FROM users WHERE active = %s", (True,))
-users = cursor.fetchall()  # Automatically creates "query" span with SQL and args
-
-# Manual instrumentation for other databases
-@jot.instrument(category="database")
-def execute_query(sql, params=None):
-    result = db.execute(sql, params)
-    jot.info("Query executed", {"sql": sql, "rows": len(result)})
-    return result
-```
-
-## Background Jobs
-
-```python
-@jot.instrument("job_id")
-def process_job(job_data):
-    jot.info("Job started", {"type": job_data["type"]})
-
-    try:
-        result = do_work(job_data)
-        jot.info("Job completed", {"result_size": len(result)})
-        return result
-    except Exception as e:
-        jot.error("Job failed", e, {"retry_count": job_data.get("retries", 0)})
-        raise
 ```

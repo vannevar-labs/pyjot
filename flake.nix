@@ -73,13 +73,6 @@
 
       # Then apply the hammer overrides and our custom overrides to the host packages
       customOverrides = final: prev: {
-        # Add any additional custom overrides here
-        psycopg2 = prev.psycopg2.overrideAttrs (old: {
-          buildInputs =
-            (old.buildInputs or [])
-            ++ lib.optionals
-            (final.stdenv.hostPlatform.isLinux) [final.postgresql];
-        });
       };
 
       # Get the hammer overrides for this system
