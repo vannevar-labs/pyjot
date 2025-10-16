@@ -37,7 +37,7 @@ process_order(456)  # Automatically creates a trace span
 
 - **Zero-config telemetry** - If `jot.init()` is never called, all operations are no-ops
 - **Structured everything** - Logs, metrics, errors, and traces all support key-value tags
-- **Multiple targets** - Send to console, OpenTelemetry, Sentry, Rollbar, or multiple destinations
+- **Multiple targets** - Send to console, OpenTelemetry, Sentry, or multiple destinations
 - **Automatic tracing** - `@jot.instrument` decorator for effortless function tracing
 - **Python logging bridge** - Route standard library logging through Jot targets
 
@@ -46,9 +46,8 @@ process_order(456)  # Automatically creates a trace span
 Send telemetry to different destinations:
 
 - **PrintTarget** - Console output for development
-- **OTLPTarget** - OpenTelemetry for production observability  
+- **OTLPTarget** - OpenTelemetry for production observability
 - **SentryTarget** - Error tracking and performance monitoring
-- **RollbarTarget** - Error reporting
 - **FanOutTarget** - Send to multiple targets simultaneously
 
 ## Installation
@@ -57,13 +56,13 @@ Send telemetry to different destinations:
 pip install dl-jot
 
 # With optional dependencies
-pip install dl-jot[sentry,rollbar,postgres,otel]
+pip install dl-jot[sentry,otel]
 ```
 
 ## Documentation
 
 - **[Quick Reference](QUICKREF.md)** - Common patterns and examples
-- **[API Reference](API.md)** - Complete function and class documentation  
+- **[API Reference](API.md)** - Complete function and class documentation
 - **[Contributing Guide](CONTRIBUTING.md)** - For developers working on Pyjot itself
 
 ## License

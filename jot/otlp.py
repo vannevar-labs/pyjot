@@ -57,10 +57,15 @@ _severity_map = {
 class OTLPTarget(Target):
     @classmethod
     def from_environment(cls):
+        print("OTLPTarget.from_environment")
         log_exporter = _env_log_exporter()
         metric_exporter = _env_metric_exporter()
         span_exporter = _env_span_exporter()
         service_name = get_env("SERVICE_NAME") or os.getenv("OTEL_SERVICE_NAME", "unknown-service")
+
+        print(f"log_exporter: {log_exporter}")
+        print(f"metric_exporter: {metric_exporter}")
+        print(f"span_exporter: {span_exporter}")
 
         if any((log_exporter, metric_exporter, span_exporter)):
             return OTLPTarget(

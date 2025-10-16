@@ -595,7 +595,6 @@ class TestPerformanceAndSafety:
         import jot.otlp
         import jot.print
         import jot.prometheus
-        import jot.rollbar
         import jot.sentry
         import jot.zipkin
 
