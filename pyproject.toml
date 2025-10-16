@@ -33,13 +33,18 @@ dev = [
     "requests-mock~=1.9.3",
     "tox>=3.25.0",
     "callee>=0.3.1",
-    "pre-commit>=2.21.0",
+    "pre-commit>=4.3.0",
     "tox-uv>=1.13.1",
     "tox-gh-actions>=3.2.0",
     "hatchling>=1.27.0",
     "pytest-asyncio>=0.20.3",
 ]
 prometheus = []
+
+[tool.uv]
+override-dependencies = [
+    "pyyaml>=v6.0.3"
+]
 
 [tool.pytest.ini_options]
 mock_use_standalone_module = true
