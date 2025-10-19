@@ -166,3 +166,127 @@ async def test_async_tag_two(func, args, kwargs, logspy):
     # all the logs have tag_two
     for c in logspy.call_args_list:
         assert c.args[2]["tag_two"] == 2
+
+
+@pytest.mark.select("sync_generator")
+@pytest.mark.reject("throws")
+def test_sync_generator(func, args, kwargs, root_span, logspy):
+    gen = func(*args, **kwargs)
+
+    # Generator should be created but span not started yet
+    assert logspy.call_count == 0
+
+    # First yield
+    value1 = next(gen)
+    assert value1 == "first"
+
+    # Second yield
+    value2 = next(gen)
+    assert value2 == "second"
+
+    # Continue until exhausted
+    remaining = list(gen)
+
+    # Check that we got all running logs with the correct span
+    running = [c.args[3] for c in logspy.call_args_list if c.args[1] == "running"]
+    assert len(running) >= 1
+    for r in running:
+        assert r is not root_span
+        assert r.name == func.__name__
+        assert r.parent_id == root_span.id
+
+
+@pytest.mark.select("sync_generator", "tag_one")
+def test_sync_generator_tag_one(func, args, kwargs, logspy):
+    gen = func(*args, **kwargs)
+
+    # Consume the generator
+    list(gen)
+
+    # all running logs have tag_one
+    running = [c.args[2] for c in logspy.call_args_list if c.args[1] == "running"]
+    for r in running:
+        assert r["tag_one"] == 1
+
+
+@pytest.mark.select("sync_generator", "throws")
+def test_sync_generator_throws(func, args, kwargs, logspy, errspy):
+    gen = func(*args, **kwargs)
+
+    # First yield should work
+    value1 = next(gen)
+    assert value1 == "first"
+
+    # Second call should throw
+    with pytest.raises(Exception):
+        next(gen)
+
+    # the error is reported
+    assert errspy.call_count == 1
+    c = errspy.call_args_list[0]
+    assert c.args[0] == f"Error during {c.args[3].name}"
+
+
+@pytest.mark.select("async_generator")
+@pytest.mark.reject("throws")
+async def test_async_generator(func, args, kwargs, root_span, logspy):
+    agen = func(*args, **kwargs)
+
+    # Generator should be created but span not started yet
+    assert logspy.call_count == 0
+
+    # First yield
+    value1 = await agen.__anext__()
+    assert value1 == "first"
+
+    # Second yield
+    value2 = await agen.__anext__()
+    assert value2 == "second"
+
+    # Continue until exhausted
+    remaining = []
+    try:
+        while True:
+            remaining.append(await agen.__anext__())
+    except StopAsyncIteration:
+        pass
+
+    # Check that we got all running logs with the correct span
+    running = [c.args[3] for c in logspy.call_args_list if c.args[1] == "running"]
+    assert len(running) >= 1
+    for r in running:
+        assert r is not root_span
+        assert r.name == func.__name__
+        assert r.parent_id == root_span.id
+
+
+@pytest.mark.select("async_generator", "tag_one")
+async def test_async_generator_tag_one(func, args, kwargs, logspy):
+    agen = func(*args, **kwargs)
+
+    # Consume the generator
+    async for _ in agen:
+        pass
+
+    # all running logs have tag_one
+    running = [c.args[2] for c in logspy.call_args_list if c.args[1] == "running"]
+    for r in running:
+        assert r["tag_one"] == 1
+
+
+@pytest.mark.select("async_generator", "throws")
+async def test_async_generator_throws(func, args, kwargs, logspy, errspy):
+    agen = func(*args, **kwargs)
+
+    # First yield should work
+    value1 = await agen.__anext__()
+    assert value1 == "first"
+
+    # Second call should throw
+    with pytest.raises(Exception):
+        await agen.__anext__()
+
+    # the error is reported
+    assert errspy.call_count == 1
+    c = errspy.call_args_list[0]
+    assert c.args[0] == f"Error during {c.args[3].name}"

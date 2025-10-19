@@ -197,3 +197,72 @@ async def fn_one_suspension_2():
     await asyncio.sleep(0.1)
     jot.info("running", ord=2)
     return "done"
+
+
+@args()
+@select("uncalled", "sync_generator")
+@jot.instrument
+def fn_sync_generator():
+    jot.info("running", ord=1)
+    yield "first"
+    jot.info("running", ord=2)
+    yield "second"
+    jot.info("running", ord=3)
+    yield "third"
+
+
+@args()
+@select("tag_one", "sync_generator")
+@jot.instrument(tag_one=1)
+def fn_sync_generator_stag_1():
+    jot.info("running", ord=1)
+    yield "first"
+    jot.info("running", ord=2)
+    yield "second"
+
+
+@args()
+@select("throws", "sync_generator")
+@jot.instrument
+def fn_sync_generator_throws():
+    jot.info("running", ord=1)
+    yield "first"
+    jot.info("running", ord=2)
+    raise RuntimeError("oops")
+    yield "unreachable"
+
+
+@args()
+@select("uncalled", "async_generator")
+@jot.instrument
+async def fn_async_generator():
+    jot.info("running", ord=1)
+    await asyncio.sleep(0.1)
+    yield "first"
+    jot.info("running", ord=2)
+    await asyncio.sleep(0.1)
+    yield "second"
+    jot.info("running", ord=3)
+
+
+@args()
+@select("tag_one", "async_generator")
+@jot.instrument(tag_one=1)
+async def fn_async_generator_stag_1():
+    jot.info("running", ord=1)
+    await asyncio.sleep(0.1)
+    yield "first"
+    jot.info("running", ord=2)
+    yield "second"
+
+
+@args()
+@select("throws", "async_generator")
+@jot.instrument
+async def fn_async_generator_throws():
+    jot.info("running", ord=1)
+    await asyncio.sleep(0.1)
+    yield "first"
+    jot.info("running", ord=2)
+    raise RuntimeError("oops")
+    yield "unreachable"
