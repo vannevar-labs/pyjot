@@ -1,4 +1,4 @@
-from .base import Meter
+from .base import Meter, TraceContext
 
 active_meter = Meter()
 
@@ -8,6 +8,16 @@ def _swap_active(new_active):
     old_active = active_meter
     active_meter = new_active
     return old_active
+
+
+def get_trace_context():
+    if active_meter.active_span is None:
+        return None
+
+    return TraceContext(
+        trace_id=active_meter.active_span.trace_id,
+        parent_id=active_meter.active_span.id,
+    )
 
 
 def span(*args, **kwargs):

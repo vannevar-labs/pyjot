@@ -200,3 +200,9 @@ class Target:
 
     def count(self, name, value, tags, span=None):
         pass
+
+
+class TraceContext:
+    def __init__(self, trace_id=None, parent_id=None):
+        self.trace_id = trace_id or util.generate_trace_id()
+        self.parent_id = parent_id
