@@ -58,9 +58,21 @@ def pytest_generate_tests(metafunc):
 
         # filter by function type
         if inspect.iscoroutinefunction(metafunc.function):
-            fns = [fn for fn in fns if inspect.iscoroutinefunction(fn)]
+            fns = [
+                fn
+                for fn in fns
+                if inspect.iscoroutinefunction(fn)
+                or inspect.isasyncgenfunction(fn)
+                or "async_generator" in getattr(fn, "_jot_selectors", set())
+            ]
         else:
-            fns = [fn for fn in fns if not inspect.iscoroutinefunction(fn)]
+            fns = [
+                fn
+                for fn in fns
+                if not inspect.iscoroutinefunction(fn)
+                and not inspect.isasyncgenfunction(fn)
+                and "async_generator" not in getattr(fn, "_jot_selectors", set())
+            ]
 
         # filter by selectors marks, if any
         for markinfo in metafunc.definition.iter_markers():
@@ -80,6 +92,17 @@ def pytest_generate_tests(metafunc):
                     if not test_selectors.intersection(fn_selectors):
                         _fns.append(fn)
                 fns = _fns
+
+        # Exclude generator functions from non-generator tests
+        test_name = metafunc.function.__name__
+        if "generator" not in test_name:
+            _fns = []
+            for fn in fns:
+                fn_selectors = getattr(fn, "_jot_selectors", set())
+                # Exclude functions marked as generators from non-generator tests
+                if not ("sync_generator" in fn_selectors or "async_generator" in fn_selectors):
+                    _fns.append(fn)
+            fns = _fns
 
         # parametrize by args and kwargs, if the function requests both
         if "args" in metafunc.fixturenames and "kwargs" in metafunc.fixturenames:

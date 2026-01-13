@@ -19,6 +19,10 @@ def make_decorator(dtags, stags):
     def decorator(func):
         if inspect.iscoroutinefunction(func):
             return wrap_async(func, dtags, stags)
+        elif inspect.isasyncgenfunction(func):
+            return wrap_async_generator(func, dtags, stags)
+        elif inspect.isgeneratorfunction(func):
+            return wrap_sync_generator(func, dtags, stags)
 
         return wrap_sync(func, dtags, stags)
 
@@ -124,6 +128,218 @@ def wrap_sync(func, dynamic_tag_names, static_tags):
             child.finish()
 
     return wrapper
+
+
+def wrap_sync_generator(func, dynamic_tag_names, static_tags):
+    name = func.__name__
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        tags = extract_tags(dynamic_tag_names, static_tags, kwargs)
+
+        # Create the generator
+        generator = func(*args, **kwargs)
+
+        # Wrap it with instrumentation
+        return InstrumentedSyncGenerator(generator, name, tags)
+
+    return wrapper
+
+
+def wrap_async_generator(func, dynamic_tag_names, static_tags):
+    name = func.__name__
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        tags = extract_tags(dynamic_tag_names, static_tags, kwargs)
+
+        # Create the async generator
+        async_generator = func(*args, **kwargs)
+
+        # Wrap it with instrumentation
+        return InstrumentedAsyncGenerator(async_generator, name, tags)
+
+    return wrapper
+
+
+class InstrumentedSyncGenerator:
+    def __init__(self, generator, name, tags):
+        self.generator = generator
+        self.name = name
+        self.tags = tags
+        self.child = None
+        self.parent = None
+        self._started = False
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if not self._started:
+            self._start_span()
+
+        try:
+            self._activate_span()
+            value = next(self.generator)
+            self._deactivate_span()
+            return value
+        except StopIteration:
+            self._finish_span()
+            raise
+        except Exception as e:
+            self._handle_error(e)
+            raise
+
+    def close(self):
+        try:
+            self.generator.close()
+        finally:
+            if self._started:
+                self._finish_span()
+
+    def send(self, value):
+        if not self._started:
+            self._start_span()
+
+        try:
+            self._activate_span()
+            result = self.generator.send(value)
+            self._deactivate_span()
+            return result
+        except StopIteration:
+            self._finish_span()
+            raise
+        except Exception as e:
+            self._handle_error(e)
+            raise
+
+    def throw(self, typ, val=None, tb=None):
+        if not self._started:
+            self._start_span()
+
+        try:
+            self._activate_span()
+            result = self.generator.throw(typ, val, tb)
+            self._deactivate_span()
+            return result
+        except StopIteration:
+            self._finish_span()
+            raise
+        except Exception as e:
+            self._handle_error(e)
+            raise
+
+    def _start_span(self):
+        self.child = _facade.active_meter.start(self.name, **self.tags)
+        self.parent = _facade._swap_active(self.child)
+        self._started = True
+
+    def _activate_span(self):
+        _facade._swap_active(self.child)
+
+    def _deactivate_span(self):
+        _facade._swap_active(self.parent)
+
+    def _finish_span(self):
+        if self._started and self.child is not None:
+            _facade._swap_active(self.parent)
+            self.child.finish()
+            self._started = False
+
+    def _handle_error(self, exception):
+        if self._started and self.child is not None:
+            self.child.error(f"Error during {self.name}", exception)
+            self._finish_span()
+
+
+class InstrumentedAsyncGenerator:
+    def __init__(self, async_generator, name, tags):
+        self.async_generator = async_generator
+        self.name = name
+        self.tags = tags
+        self.child = None
+        self.parent = None
+        self._started = False
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        if not self._started:
+            self._start_span()
+
+        try:
+            self._activate_span()
+            value = await self.async_generator.__anext__()
+            self._deactivate_span()
+            return value
+        except StopAsyncIteration:
+            self._finish_span()
+            raise
+        except Exception as e:
+            self._handle_error(e)
+            raise
+
+    async def aclose(self):
+        try:
+            await self.async_generator.aclose()
+        finally:
+            if self._started:
+                self._finish_span()
+
+    async def asend(self, value):
+        if not self._started:
+            self._start_span()
+
+        try:
+            self._activate_span()
+            result = await self.async_generator.asend(value)
+            self._deactivate_span()
+            return result
+        except StopAsyncIteration:
+            self._finish_span()
+            raise
+        except Exception as e:
+            self._handle_error(e)
+            raise
+
+    async def athrow(self, typ, val=None, tb=None):
+        if not self._started:
+            self._start_span()
+
+        try:
+            self._activate_span()
+            result = await self.async_generator.athrow(typ, val, tb)
+            self._deactivate_span()
+            return result
+        except StopAsyncIteration:
+            self._finish_span()
+            raise
+        except Exception as e:
+            self._handle_error(e)
+            raise
+
+    def _start_span(self):
+        self.child = _facade.active_meter.start(self.name, **self.tags)
+        self.parent = _facade._swap_active(self.child)
+        self._started = True
+
+    def _activate_span(self):
+        _facade._swap_active(self.child)
+
+    def _deactivate_span(self):
+        _facade._swap_active(self.parent)
+
+    def _finish_span(self):
+        if self._started and self.child is not None:
+            _facade._swap_active(self.parent)
+            self.child.finish()
+            self._started = False
+
+    def _handle_error(self, exception):
+        if self._started and self.child is not None:
+            self.child.error(f"Error during {self.name}", exception)
+            self._finish_span()
 
 
 def extract_tags(dynamic_tag_names, static_tags, keyword_args):
