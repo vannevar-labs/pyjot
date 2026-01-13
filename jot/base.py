@@ -1,4 +1,5 @@
 from time import monotonic_ns, time_ns
+from typing import Optional
 
 from . import log, util
 
@@ -165,7 +166,7 @@ class Target:
     """A target that ignores all telemetry"""
 
     @classmethod
-    def from_environment(cls):
+    def from_environment(cls) -> "Target | None":
         return None
 
     def __init__(self, level=None):

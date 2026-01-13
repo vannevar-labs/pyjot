@@ -2,12 +2,14 @@ import os
 import warnings
 from time import time_ns
 from traceback import format_exception
+from typing import Mapping, Optional
 
+from opentelemetry._logs import LogRecord
 from opentelemetry._logs.severity import SeverityNumber
 from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk._logs import LogData, LogRecord
+from opentelemetry.sdk._logs import ReadableLogRecord
 from opentelemetry.sdk.metrics.export import (
     AggregationTemporality,
     Gauge,
@@ -29,13 +31,7 @@ from opentelemetry.sdk.trace import Event as OTLPEvent
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.id_generator import RandomIdGenerator
 from opentelemetry.sdk.util.instrumentation import InstrumentationScope
-from opentelemetry.trace import (
-    SpanContext,
-    SpanKind,
-    Status,
-    StatusCode,
-    TraceFlags,
-)
+from opentelemetry.trace import SpanContext, SpanKind, Status, StatusCode, TraceFlags
 
 from . import log
 from .base import Target
@@ -74,7 +70,7 @@ class OTLPTarget(Target):
     def __init__(
         self,
         span_exporter=None,
-        log_exporter=None,
+        log_exporter: Optional[OTLPLogExporter] = None,
         metric_exporter=None,
         level=None,
         resource_attributes={},
@@ -98,8 +94,14 @@ class OTLPTarget(Target):
             span_data = OtelSpanData()
         return span_data
 
-    def _attributes_from_tags(self, tags):
-        return {k: self._convert_tag_value(v) for k, v in tags.items() if v is not None}
+    def _attributes_from_tags(self, tags: Mapping):
+        result = {}
+        for k, v in tags.items():
+            if v is not None:
+                converted_value = self._convert_tag_value(v)
+                if converted_value is not None:
+                    result[k] = converted_value
+        return result
 
     def _convert_tag_value(self, value):
         if isinstance(value, bytes):
@@ -125,11 +127,12 @@ class OTLPTarget(Target):
                 severity_text=log.name(level),
                 severity_number=_severity_map.get(level),
                 body=message,
-                resource=self.resource,
                 attributes=self._attributes_from_tags(tags),
             )
 
-        log_data = LogData(log_record, self.scope)
+        log_data = ReadableLogRecord(
+            log_record, resource=self.resource, instrumentation_scope=self.scope
+        )
         self.log_exporter.export([log_data])
 
     def error(self, message, exception, tags, span=None):
@@ -144,7 +147,7 @@ class OTLPTarget(Target):
         self.event(message, attributes, span)
         self._get_span_data(span).note_error(exception)
 
-    def magnitude(self, name, value, tags, span=None):
+    def magnitude(self, name, value, tags: Mapping, span=None):
         if self.metric_exporter is None:
             return
 
