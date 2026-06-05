@@ -1,8 +1,11 @@
 [project]
 name = "dl-jot"
-version = "0.1.0"
+version = "0.2.0"
 description = "A library for instrumenting code and sending telemetry information to an aggregator"
-authors = [{ name = "Colin Putney", email = "colin.putney@vannevarlabs.com" }]
+authors = [
+    { name = "Colin Putney", email = "colin.putney@vannevarlabs.com" },
+    { name = "Nick Renninger", email = "nick.renninger@vannevarlabs.com" },
+]
 requires-python = ">=3.10.0"
 dependencies = ["requests~=2.26"]
 
