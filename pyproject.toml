@@ -13,7 +13,7 @@ dependencies = ["requests~=2.26"]
 homepage = "https://github.com/vannevar-labs/pyjot"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling<1.32"]
 build-backend = "hatchling.build"
 
 [project.optional-dependencies]
